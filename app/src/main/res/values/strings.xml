@@ -23,4 +23,19 @@
     <string name="YES_button">YES</string>
     <string name="NO_button">NO</string>
     <string name="logout_message">Are you sure you want to log out?</string>
+    <string name="add_event_title">Add New Event</string>
+    <string name="event_name_title">Event Name</string>
+    <string name="hint_enter_event_name">Enter event name</string>
+    <string name="short_description_title">Short Description</string>
+    <string name="hint_optional_details">Optional details</string>
+    <string name="start_date_title">Start Date</string>
+    <string name="hint_date">YYYY/MM/DD</string>
+    <string name="end_date_title">End Date</string>
+    <string name="start_time_title">Start Time</string>
+    <string name="hint_time">HH:MM</string>
+    <string name="end_time_title">End Time</string>
+    <string name="cancel_button">CANCEL</string>
+    <string name="save_button">SAVE</string>
+    <string name="update_button">UPDATE</string>
+
 </resources>
