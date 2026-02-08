@@ -19,6 +19,7 @@ import com.snhu.events.data.UserDao;
 import com.snhu.events.model.User;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class UserRepository {
     private final UserDao userDao;
@@ -31,14 +32,37 @@ public class UserRepository {
         executorService = Executors.newSingleThreadExecutor();
     }
 
-    // Abstract method to register an user through DAO
+    /* Hashes user's password using BCrypt algorithm
+     * applying salting for safe credential handling.
+     * Then execute the service to register the user.
+     */
     public void register(User user) {
-        executorService.execute(() -> userDao.registerUser(user));
+        executorService.execute(() -> {
+            // Hash the password with a generated salt
+            String hashedPassword = BCrypt.hashpw(user.password, BCrypt.gensalt());
+            user.password = hashedPassword; // Overwrite plain text with hash
+            userDao.registerUser(user);
+        });
     }
 
-    // Compare user input and authenticate for log in
-    public User login(String identifier, String password) {
-        // Database operations must happen off the main thread
-        return userDao.login(identifier, password);
+    // Define a simple callback interface
+    public interface LoginCallback {
+        void onResult(boolean success);
+    }
+
+    public void authenticate(String identifier, String password, LoginCallback callback) {
+        executorService.execute(() -> {
+            // Fetch the user from DB by identifier
+            User user = userDao.findUserByIdentifier(identifier);
+            boolean isValid = false;
+
+            if (user != null) {
+                // Check if the plain-text input matches the stored hash
+                isValid = BCrypt.checkpw(password, user.password);
+            }
+
+            // Return the result to the caller
+            callback.onResult(isValid);
+        });
     }
 }

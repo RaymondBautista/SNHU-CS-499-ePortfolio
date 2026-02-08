@@ -13,9 +13,10 @@
 
 package com.snhu.events.model;
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "users")
+@Entity(tableName = "users", indices = {@Index(value = {"email"}, unique = true), @Index(value = {"username"}, unique = true)})
 public class User {
 
     // Set id as auto-incremental primary key

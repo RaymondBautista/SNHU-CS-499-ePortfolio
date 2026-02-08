@@ -23,11 +23,8 @@ public interface UserDao {
     @Insert
     void registerUser(User user);
 
-    // Supports login via either Email OR Username
-    @Query("SELECT * FROM users WHERE (email = :identifier OR username = :identifier) AND password = :password LIMIT 1")
-    User login(String identifier, String password);
+    // Finds user by email or username
+    @Query("SELECT * FROM users WHERE email = :identifier OR username = :identifier LIMIT 1")
+    User findUserByIdentifier(String identifier);
 
-    // Check if the user exists looking by email or username
-    @Query("SELECT * FROM users WHERE email = :email OR username = :username LIMIT 1")
-    User checkUserExists(String email, String username);
 }
