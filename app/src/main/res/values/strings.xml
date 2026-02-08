@@ -14,4 +14,12 @@
     <string name="sms_title">SMS</string>
     <string name="add_title">Add</string>
     <string name="logout_title">Log Out</string>
+    <string name="sms_permission">App SMS Permission Required</string>
+    <string name="sms_description_title">This app uses SMS notifications to alert you when a new event is scheduled and to remind you of upcoming events. You can enable or disable SMS notifications at any time in your settings. Disabling this permission will not affect the rest of the app’s features.</string>
+    <string name="deny_button">DENY</string>
+    <string name="allow_button">ALLOW</string>
+    <string name="sms_disable">Do you want to disable SMS features?</string>
+    <string name="sms_disable_description">You will no longer receive SMS notifications from this app until enabling this feature again on the main screen button.</string>
+    <string name="YES_button">YES</string>
+    <string name="NO_button">NO</string>
 </resources>
