@@ -22,4 +22,5 @@
     <string name="sms_disable_description">You will no longer receive SMS notifications from this app until enabling this feature again on the main screen button.</string>
     <string name="YES_button">YES</string>
     <string name="NO_button">NO</string>
+    <string name="logout_message">Are you sure you want to log out?</string>
 </resources>
