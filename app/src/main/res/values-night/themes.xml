@@ -4,7 +4,7 @@
         <item name="colorOnPrimary">@color/gray_800</item>
         <item name="android:statusBarColor">@color/gray_800</item>
         <item name="android:windowBackground">@color/gray_800</item>
-        <item name="colorContainer">@color/blue_243</item>
-        <item name="colorOnContainer">@color/white</item>
+        <item name="colorSecondaryContainer">@color/blue_245</item>
+        <item name="colorOnSecondaryContainer">@color/white</item>
     </style>
 </resources>
