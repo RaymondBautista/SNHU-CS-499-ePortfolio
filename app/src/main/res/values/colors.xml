@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="primary_blue">#3F51B5</color>
+    <color name="primary_blue_dark">#303F9F</color>
+    <color name="primary_blue_light">#A8C7FA</color>
+    <color name="secondary_blue">#3D4758</color>
+    <color name="error_red">#B3261E</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <color name="dark_background">#1A1C1E</color>
+    <color name="dark_surface_variant">#2D3035</color>
 </resources>
