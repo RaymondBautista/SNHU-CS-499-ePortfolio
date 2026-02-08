@@ -8,5 +8,10 @@
     <string name="hint_password">Password</string>
     <string name="hint_username">Username</string>
     <string name="hint_phone">Phone Number</string>
+    <string name="hint_event_list">My Event List</string>
     <string name="error_invalid_login">Incorrect user or password. Please try again.</string>
+    <string name="events_title">Events</string>
+    <string name="sms_title">SMS</string>
+    <string name="add_title">Add</string>
+    <string name="logout_title">Log Out</string>
 </resources>
