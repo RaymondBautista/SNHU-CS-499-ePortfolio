@@ -24,6 +24,7 @@
     <string name="NO_button">NO</string>
     <string name="logout_message">Are you sure you want to log out?</string>
     <string name="add_event_title">Add New Event</string>
+    <string name="edit_event_title">Edit Existing Event</string>
     <string name="event_name_title">Event Name</string>
     <string name="hint_enter_event_name">Enter event name</string>
     <string name="short_description_title">Short Description</string>
