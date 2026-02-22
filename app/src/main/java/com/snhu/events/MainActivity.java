@@ -9,7 +9,7 @@
  * elements effectively
  *
  * Last Modified: 2026-02-22
- * Version: 2.5.0
+ * Version: 3.0.0 (released)
  *
  * Author: Raymond Bautista
  */
