@@ -18,6 +18,8 @@ import com.snhu.events.data.AppDatabase;
 import com.snhu.events.data.UserDao;
 import com.snhu.events.model.User;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 public class UserRepository {
     private final UserDao userDao;
 
@@ -34,21 +36,37 @@ public class UserRepository {
         void onFinished();
     }
 
-    public void authenticate(String identifier, String password, OnAuthListener listener) {
+    /* Hashes user's password using BCrypt algorithm
+     * applying salting for safe credential handling.
+     * Then execute the service to register the user.
+     */
+    public void register(User user, OnRegisterListener listener) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
-            User user = userDao.findUserByIdentifier(identifier);
-            if (user != null && user.password.equals(password)) {
-                listener.onFinished(user);
-            } else {
-                listener.onFinished(null);
+            // Hash the password with a generated salt before saving
+            String hashedPassword = BCrypt.hashpw(user.password, BCrypt.gensalt());
+            user.password = hashedPassword; // Overwrite plain text with hash
+
+            userDao.insertUser(user);
+
+            if (listener != null) {
+                listener.onFinished();
             }
         });
     }
 
-    public void register(User user, OnRegisterListener listener) {
+    public void authenticate(String identifier, String password, OnAuthListener listener) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
-            userDao.insertUser(user);
-            if (listener != null) listener.onFinished();
+            // Fetch the user from DB by identifier (email or username)
+            User user = userDao.findUserByIdentifier(identifier);
+
+            // Check if user exists and the plain-text input matches the stored hash
+            if (user != null && BCrypt.checkpw(password, user.password)) {
+                // Success: return the user object for session management
+                listener.onFinished(user);
+            } else {
+                // Failure: return null
+                listener.onFinished(null);
+            }
         });
     }
 }
