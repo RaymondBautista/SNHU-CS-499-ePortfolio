@@ -25,6 +25,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -105,11 +108,16 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
 
     // SMS Dialog
     private void handleSmsAction() {
+        SharedPreferences prefs = getSharedPreferences("EventPrefs", MODE_PRIVATE);
+        String smsKey = "SMS_ENABLED_" + currentUserId;
 
-        // Read Android Manifest to check for permission
-        boolean hasPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED;
+        // Check System Permission
+        boolean hasSystemPermission = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED;
 
-        // Create an alert dialog
+        // Check App-level Preference (default to false for new users)
+        boolean isSmsEnabledInApp = prefs.getBoolean(smsKey, false);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View layout = getLayoutInflater().inflate(R.layout.dialog_sms, null);
         builder.setView(layout);
@@ -121,25 +129,38 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
         Button btnPos = layout.findViewById(R.id.btnPositive);
         Button btnNeg = layout.findViewById(R.id.btnNegative);
 
-        if (!hasPermission) {
-            // If the user has not granted permission, then ask for it
-            title.setText(R.string.sms_permission);
+        if (!hasSystemPermission) {
+            // CASE 1: System permission missing
+            title.setText(R.string.sms_permission); // "SMS Permission Required"
+            message.setText(R.string.sms_description_title);
             btnPos.setText(R.string.allow_button);
             btnPos.setOnClickListener(v -> {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, 101);
                 dialog.dismiss();
             });
+        } else if (!isSmsEnabledInApp) {
+            // CASE 2: Has permission, but feature is currently OFF
+            title.setText(R.string.enable_sms_alerts);
+            message.setText(R.string.sms_ask_to_receive);
+            btnPos.setText(R.string.enable);
+            btnPos.setOnClickListener(v -> {
+                prefs.edit().putBoolean(smsKey, true).apply();
+                Toast.makeText(this, R.string.sms_alerts_enabled, Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            });
         } else {
-            // If the app already has permission, ask the user if wants to disable
-            title.setText(R.string.sms_disable);
+            // CASE 3: Has permission and feature is currently ON
+            title.setText(R.string.sms_disable); // "Disable SMS Alerts?"
             message.setText(R.string.sms_disable_description);
             btnPos.setText(R.string.YES_button);
-            btnNeg.setText(R.string.NO_button);
             btnPos.setOnClickListener(v -> {
-                // Disable the SMS work manager task
+                // We can't revoke the system permission, but we turn off our internal toggle
+                prefs.edit().putBoolean(smsKey, false).apply();
+                Toast.makeText(this, R.string.sms_alerts_disabled, Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             });
         }
+
         btnNeg.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
     }
@@ -188,6 +209,22 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
         // Ensure navbar stays on 'Home' when returning
         BottomNavigationView nav = findViewById(R.id.bottomNavigation);
         nav.setSelectedItemId(R.id.nav_home);
+    }
+
+    // Toggle SMS permission internally via shared preferences
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 101) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // System permission granted! Now turn on our internal toggle.
+                getSharedPreferences("EventPrefs", MODE_PRIVATE)
+                        .edit()
+                        .putBoolean("SMS_ENABLED_" + currentUserId, true)
+                        .apply();
+                Toast.makeText(this, "SMS Alerts Enabled", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     // Sends the user to Add Event form if the user press the button on the navigation bar

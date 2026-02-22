@@ -38,4 +38,9 @@
     <string name="cancel_button">CANCEL</string>
     <string name="save_button">SAVE</string>
     <string name="update_button">UPDATE</string>
+    <string name="enable_sms_alerts">Enable SMS Alerts?</string>
+    <string name="sms_ask_to_receive">Would you like to receive text notifications for your events?</string>
+    <string name="enable">Enable</string>
+    <string name="sms_alerts_enabled">SMS Alerts Enabled</string>
+    <string name="sms_alerts_disabled">SMS Alerts Disabled</string>
 </resources>

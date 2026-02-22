@@ -94,7 +94,7 @@ public class AddEditEventActivity extends AppCompatActivity {
 
     // Prepare the screen to show only the necessary elements to edit
     private void prepareEditMode() {
-        txtHeader.setText(R.string.update_button);
+        txtHeader.setText(R.string.edit_event_title);
         btnAction.setText(R.string.update_button);
         sectionEndDate.setVisibility(View.GONE);    // Hide the end date field
 
