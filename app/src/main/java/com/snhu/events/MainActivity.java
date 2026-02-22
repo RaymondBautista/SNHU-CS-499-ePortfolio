@@ -35,8 +35,13 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.snhu.events.model.Event;
+import com.snhu.events.service.DailySmsWorker;
 import com.snhu.events.ui.EventAdapter;
 import com.snhu.events.ui.ListItem;
 import com.snhu.events.viewmodel.EventViewModel;
@@ -145,6 +150,10 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
             btnPos.setText(R.string.enable);
             btnPos.setOnClickListener(v -> {
                 prefs.edit().putBoolean(smsKey, true).apply();
+
+                // TRIGGER THE WORKER HERE FOR TESTING
+                triggerTestSmsWorker(currentUserId);
+
                 Toast.makeText(this, R.string.sms_alerts_enabled, Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             });
@@ -225,6 +234,24 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
                 Toast.makeText(this, "SMS Alerts Enabled", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    // Indicates the WorkManager to run (enqueue) the worker
+    private void triggerTestSmsWorker(int userId) {
+        // Create the data to pass to the worker
+        Data inputData = new Data.Builder()
+                .putInt("USER_ID", userId)
+                .build();
+
+        // Create a One-Time request for immediate testing
+        OneTimeWorkRequest testRequest = new OneTimeWorkRequest.Builder(DailySmsWorker.class)
+                .setInputData(inputData)
+                .build();
+
+        // Enqueue the work
+        WorkManager.getInstance(this).enqueue(testRequest);
+
+        Toast.makeText(this, "SMS Worker Enqueued!", Toast.LENGTH_SHORT).show();
     }
 
     // Sends the user to Add Event form if the user press the button on the navigation bar
