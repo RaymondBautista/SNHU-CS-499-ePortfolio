@@ -28,8 +28,10 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.textfield.TextInputEditText;
 import com.snhu.events.model.Event;
 import com.snhu.events.viewmodel.AddEditViewModel;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 public class AddEditEventActivity extends AppCompatActivity {
@@ -44,11 +46,14 @@ public class AddEditEventActivity extends AppCompatActivity {
     private View sectionEndDate;
     private TextView txtHeader;
     private Button btnAction;
+
     private int userId, eventId;
 
     // Flag to determine if the form should be on add or edit mode
     private boolean isEditMode = false;
     private Event currentEvent;
+    private final SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+    private final SimpleDateFormat timeFmt = new SimpleDateFormat("h:mm a", Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,11 +71,8 @@ public class AddEditEventActivity extends AppCompatActivity {
         setupPickers(); // Initialize date and time pickers
 
         // Select which elements should be on screen based on the mode flag
-        if (isEditMode) {
-            prepareEditMode();
-        } else {
-            prepareAddMode();
-        }
+        if (isEditMode) prepareEditMode();
+        else prepareAddMode();
 
         // Action buttons listeners
         findViewById(R.id.btnCancel).setOnClickListener(v -> finish());
@@ -92,7 +94,7 @@ public class AddEditEventActivity extends AppCompatActivity {
 
     // Prepare the screen to show only the necessary elements to edit
     private void prepareEditMode() {
-        txtHeader.setText(R.string.edit_event_title);
+        txtHeader.setText(R.string.update_button);
         btnAction.setText(R.string.update_button);
         sectionEndDate.setVisibility(View.GONE);    // Hide the end date field
 
@@ -139,36 +141,66 @@ public class AddEditEventActivity extends AppCompatActivity {
             Calendar temp = Calendar.getInstance();
             temp.set(Calendar.HOUR_OF_DAY, h);
             temp.set(Calendar.MINUTE, m);
-            target.setText(new SimpleDateFormat("h:mm a", Locale.getDefault()).format(temp.getTime()));
+            target.setText(timeFmt.format(temp.getTime()));
         }, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), false).show();
     }
 
     // Handle user input data elements for correct insertion and update
     private void handleAction() {
-        // Trim any trailing spaces
         String name = editName.getText().toString().trim();
-        String startD = editStartD.getText().toString().trim();
-        String startT = editStartT.getText().toString().trim();
-        String endT = editEndT.getText().toString().trim();
+        String sD = editStartD.getText().toString().trim();
+        String eD = editEndD.getText().toString().trim();
+        String sT = editStartT.getText().toString().trim();
+        String eT = editEndT.getText().toString().trim();
 
-        // Ask the user to fill all the required elements
-        if (name.isEmpty() || startD.isEmpty() || startT.isEmpty() || endT.isEmpty()) {
-            Toast.makeText(this, "Please fill all required (*) fields", Toast.LENGTH_SHORT).show();
+        // Basic Null Validation. Ask the user to fill all required elements
+        if (name.isEmpty() || sD.isEmpty() || sT.isEmpty() || eT.isEmpty()) {
+            Toast.makeText(this, "Required fields are empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Logic Validation (Date and Time)
+        try {
+            Date startDate = dateFmt.parse(sD);
+            Date startTime = timeFmt.parse(sT);
+            Date endTime = timeFmt.parse(eT);
+
+            if (!isEditMode && !eD.isEmpty()) {
+                Date endDate = dateFmt.parse(eD);
+                if (endDate.before(startDate)) {
+                    Toast.makeText(this, "End date cannot be before start date", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            // If same day, check time
+            if (endTime.before(startTime) || endTime.equals(startTime)) {
+                Toast.makeText(this, "End time must be after start time", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+        } catch (ParseException e) {
+            Toast.makeText(this, "Invalid Date/Time format", Toast.LENGTH_SHORT).show();
             return;
         }
 
         // Retrieve data and call correct viewModel method based on current status flag
+        if (userId == -1) {
+            Toast.makeText(this, "Error: User session lost. Please log in again.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         if (isEditMode) {
             currentEvent.name = name;
             currentEvent.description = editDesc.getText().toString();
-            currentEvent.date = startD;
-            currentEvent.startTime = startT;
-            currentEvent.endTime = endT;
+            currentEvent.date = sD;
+            currentEvent.startTime = sT;
+            currentEvent.endTime = eT;
             viewModel.updateEvent(currentEvent);
         } else {
-            viewModel.saveEvents(userId, name, editDesc.getText().toString(),
-                    startD, editEndD.getText().toString(), startT, endT);
+            viewModel.saveEvents(userId, name, editDesc.getText().toString(), sD, eD, sT, eT);
         }
-        finish();
+
+        finish(); // Returns to MainActivity
     }
 }

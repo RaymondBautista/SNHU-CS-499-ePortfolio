@@ -171,6 +171,15 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
         viewModel.deleteEvent(event); // Triggers LiveData to refresh UI
     }
 
+    // Set the navbar to events (home) after finishing a secondary screen interaction
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Resets the navbar selection to the first item (the list) when returning from other screens
+        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
+        nav.setSelectedItemId(R.id.nav_home);
+    }
+
     // Sends the user to Add Event form if the user press the button on the navigation bar
     private void navigateToAddEvent() {
         Intent intent = new Intent(this, AddEditEventActivity.class);
