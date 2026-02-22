@@ -36,7 +36,9 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.work.Data;
+import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -47,9 +49,11 @@ import com.snhu.events.ui.ListItem;
 import com.snhu.events.viewmodel.EventViewModel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements EventAdapter.OnEventClickListener {
     private EventViewModel viewModel;
@@ -151,10 +155,13 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
             btnPos.setOnClickListener(v -> {
                 prefs.edit().putBoolean(smsKey, true).apply();
 
-                // TRIGGER THE WORKER HERE FOR TESTING
+                // Immediate SMS (Instant confirmation)
                 triggerTestSmsWorker(currentUserId);
 
-                Toast.makeText(this, R.string.sms_alerts_enabled, Toast.LENGTH_SHORT).show();
+                // Scheduled SMS (Daily automation at 12:00 AM)
+                scheduleDailySms(currentUserId);
+
+                Toast.makeText(this, R.string.enable_sms_alerts, Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             });
         } else {
@@ -163,8 +170,11 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
             message.setText(R.string.sms_disable_description);
             btnPos.setText(R.string.YES_button);
             btnPos.setOnClickListener(v -> {
-                // We can't revoke the system permission, but we turn off our internal toggle
                 prefs.edit().putBoolean(smsKey, false).apply();
+
+                // Cancel the periodic work so it doesn't wake up the phone at midnight
+                WorkManager.getInstance(this).cancelUniqueWork("DailySms_" + currentUserId);
+
                 Toast.makeText(this, R.string.sms_alerts_disabled, Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             });
@@ -236,7 +246,8 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
         }
     }
 
-    // Indicates the WorkManager to run (enqueue) the worker
+    // Indicates the WorkManager to run (enqueue)
+    // the worker and send SMS immediately after enabling
     private void triggerTestSmsWorker(int userId) {
         // Create the data to pass to the worker
         Data inputData = new Data.Builder()
@@ -252,6 +263,41 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
         WorkManager.getInstance(this).enqueue(testRequest);
 
         Toast.makeText(this, "SMS Worker Enqueued!", Toast.LENGTH_SHORT).show();
+    }
+
+    // Schedule automatic SMS notifications using the Worker
+    private void scheduleDailySms(int userId) {
+        Calendar calendar = Calendar.getInstance();
+        long now = calendar.getTimeInMillis();
+
+        // Set target to 12:00 AM (Midnight)
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        // If midnight has already passed today, move to tomorrow's midnight
+        if (calendar.getTimeInMillis() <= now) {
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+        }
+
+        long delay = calendar.getTimeInMillis() - now;
+
+        Data inputData = new Data.Builder().putInt("USER_ID", userId).build();
+
+        // Create a periodic request (24-hour interval)
+        PeriodicWorkRequest dailyRequest = new PeriodicWorkRequest.Builder(
+                DailySmsWorker.class, 24, TimeUnit.HOURS)
+                .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                .setInputData(inputData)
+                .build();
+
+        // Enqueue as UNIQUE work so we don't schedule it multiple times by mistake
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "DailySms_" + userId,
+                ExistingPeriodicWorkPolicy.UPDATE, // Updates the schedule if it already exists
+                dailyRequest
+        );
     }
 
     // Sends the user to Add Event form if the user press the button on the navigation bar
