@@ -13,21 +13,21 @@
  */
 
 package com.snhu.events.data;
+
 import androidx.room.Dao;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import com.snhu.events.model.User;
 
 @Dao
 public interface UserDao {
-    @Insert
-    void registerUser(User user);
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertUser(User user);
 
-    // Finds user by email or username
     @Query("SELECT * FROM users WHERE email = :identifier OR username = :identifier LIMIT 1")
     User findUserByIdentifier(String identifier);
 
-    // SMS Worker: Synchronous fetch to get the user's phone number
     @Query("SELECT * FROM users WHERE id = :userId LIMIT 1")
     User getUserByIdSync(int userId);
 }

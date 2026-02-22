@@ -8,19 +8,19 @@
  * password length, and communicates with the
  * database room repository.
  *
- * Last Modified: 2026-02-08
- * Version: 1.0.0
+ * Last Modified: 2026-02-22
+ * Version: 2.0.0
  *
  * Author: Raymond Bautista
  */
 
 package com.snhu.events.viewmodel;
+
 import android.app.Application;
+import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.annotation.NonNull;
-
 import com.snhu.events.model.User;
 import com.snhu.events.repository.UserRepository;
 
@@ -32,7 +32,8 @@ public class LoginViewModel extends AndroidViewModel {
     // LiveData: The "Pipeline" the Activity watches
     private final MutableLiveData<Boolean> isSignUpMode = new MutableLiveData<>(false);
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> navigateToHome = new MutableLiveData<>();
+
+    private final MutableLiveData<User> authenticatedUser = new MutableLiveData<>();
 
     public LoginViewModel(@NonNull Application application) {
         super(application);
@@ -42,18 +43,17 @@ public class LoginViewModel extends AndroidViewModel {
     // Getters for the UI to observe
     public LiveData<Boolean> getIsSignUpMode() { return isSignUpMode; }
     public LiveData<String> getErrorMessage() { return errorMessage; }
-    public LiveData<Boolean> getNavigateToHome() { return navigateToHome; }
+    public LiveData<User> getAuthenticatedUser() { return authenticatedUser; }
 
     // Toggle between Login and Sign Up views
     public void toggleMode() {
-        Boolean currentMode = isSignUpMode.getValue();
-        isSignUpMode.setValue(currentMode != null && !currentMode);
-        errorMessage.setValue(null); // Clear errors when switching
+        Boolean current = isSignUpMode.getValue();
+        isSignUpMode.setValue(current != null && !current);
+        errorMessage.setValue(null);    // Clear errors when switching
     }
 
     // Decide whether to Log In or Register
     public void submitForm(String emailOrUser, String emailOnly, String password, String username, String phone) {
-
         // Validates password length
         if (password == null || password.length() < 8) {
             errorMessage.setValue("Password must be at least 8 characters");
@@ -62,32 +62,30 @@ public class LoginViewModel extends AndroidViewModel {
 
         // Sign Up Logic
         if (Boolean.TRUE.equals(isSignUpMode.getValue())) {
-            // Validate all fields are completed during registration
             if (emailOnly.isEmpty() || username.isEmpty() || phone.isEmpty()) {
-                errorMessage.setValue("All fields are required for registration");
+                errorMessage.setValue("All fields are required");
                 return;
             }
 
-            // Creates a new user and register it on the database
             User newUser = new User(emailOnly, username, password, phone);
-            repository.register(newUser);
 
-            // Switch to log in after successfully registering the user
-            toggleMode();
-            errorMessage.setValue("Registration successful! Please log in.");
+            // Pass a callback to wait for the DB to finish saving
+            repository.register(newUser, () -> {
+                // Use postValue because we are coming back from a background thread
+                isSignUpMode.postValue(false);
+                errorMessage.postValue("Registration successful! Please log in.");
+            });
 
         } else {
             // Log In logic
-            // Check for empty username or email
             if (emailOrUser.isEmpty()) {
-                errorMessage.setValue("Please enter your email or username");
+                errorMessage.setValue("Enter email or username");
                 return;
             }
 
-            // Call Repository (Async)
-            repository.authenticate(emailOrUser, password, success -> {
-                if (success) {
-                    navigateToHome.postValue(true); // Trigger navigation
+            repository.authenticate(emailOrUser, password, user -> {
+                if (user != null) {
+                    authenticatedUser.postValue(user);
                 } else {
                     errorMessage.postValue("Incorrect user or password");
                 }

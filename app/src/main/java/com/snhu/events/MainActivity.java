@@ -8,8 +8,8 @@
  * ViewModel to manage view
  * elements effectively
  *
- * Last Modified: 2026-02-21
- * Version: 2.0.0
+ * Last Modified: 2026-02-22
+ * Version: 2.5.0
  *
  * Author: Raymond Bautista
  */
@@ -18,20 +18,17 @@ package com.snhu.events;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -56,8 +53,18 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Get Logged-in User ID (passed from LoginActivity)
-        currentUserId = getIntent().getIntExtra("USER_ID", -1);
+        // Retrieve ID from SharedPreferences for persistence
+        SharedPreferences prefs = getSharedPreferences("EventPrefs", MODE_PRIVATE);
+        currentUserId = prefs.getInt("USER_ID", -1);
+
+        // Security Check: If no user found, kick back to login
+        if (currentUserId == -1) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        // Initialize view model
         viewModel = new ViewModelProvider(this).get(EventViewModel.class);
 
         // Setup Editable Header
@@ -145,9 +152,12 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
         AlertDialog dialog = builder.create();
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
-        // Send the user to the login/sign in screen after logout confirmation
         layout.findViewById(R.id.btnPositive).setOnClickListener(v -> {
-            startActivity(new Intent(this, LoginActivity.class));
+            // Clear the session on logout
+            getSharedPreferences("EventPrefs", MODE_PRIVATE).edit().clear().apply();
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
             finish();
         });
         layout.findViewById(R.id.btnNegative).setOnClickListener(v -> dialog.dismiss());
@@ -175,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
     @Override
     protected void onResume() {
         super.onResume();
-        // Resets the navbar selection to the first item (the list) when returning from other screens
+        // Ensure navbar stays on 'Home' when returning
         BottomNavigationView nav = findViewById(R.id.bottomNavigation);
         nav.setSelectedItemId(R.id.nav_home);
     }
