@@ -7,8 +7,8 @@
  * the SQL queries for event
  * retrieving and handling.
  *
- * Last Modified: 2026-02-21
- * Version: 1.0.0
+ * Last Modified: 2026-02-22
+ * Version: 1.5.0
  *
  * Author: Raymond Bautista
  */
@@ -29,9 +29,12 @@ public interface EventDao {
 
     // Events CRUD implementation
 
-    // Create DAO Method
+    // Create DAO Methods
     @Insert
     void insert(Event event);
+
+    @Insert
+    void insertAll(List<Event> events); // For range duplication
 
     // Update DAO Method
     @Update
@@ -43,15 +46,15 @@ public interface EventDao {
 
     // Read DAO methods
 
-    // Get all events for a specific user, ordered by date and time
+    // Return events related to user in ascending time order
     @Query("SELECT * FROM events WHERE userId = :userId ORDER BY date ASC, startTime ASC")
-    LiveData<List<Event>> getEventsByUserId(int userId);
+    LiveData<List<Event>> getEventsForUser(int userId);
 
-    // Specifically for the "Modify" feature: find a single event by ID
+    // Return a single event by its id
     @Query("SELECT * FROM events WHERE id = :eventId LIMIT 1")
-    Event getEventById(int eventId);
+    LiveData<Event> getEventById(int eventId);
 
-    // SMS Worker: Synchronous fetch for a specific user and date
-    @Query("SELECT * FROM events WHERE userId = :userId AND date = :date ORDER BY startTime ASC")
+    // Sync method for the SMS Worker
+    @Query("SELECT * FROM events WHERE userId = :userId AND date = :date")
     List<Event> getEventsByUserIdSync(int userId, String date);
 }
