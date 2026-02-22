@@ -27,4 +27,7 @@ public interface UserDao {
     @Query("SELECT * FROM users WHERE email = :identifier OR username = :identifier LIMIT 1")
     User findUserByIdentifier(String identifier);
 
+    // SMS Worker: Synchronous fetch to get the user's phone number
+    @Query("SELECT * FROM users WHERE id = :userId LIMIT 1")
+    User getUserByIdSync(int userId);
 }

@@ -50,4 +50,8 @@ public interface EventDao {
     // Specifically for the "Modify" feature: find a single event by ID
     @Query("SELECT * FROM events WHERE id = :eventId LIMIT 1")
     Event getEventById(int eventId);
+
+    // SMS Worker: Synchronous fetch for a specific user and date
+    @Query("SELECT * FROM events WHERE userId = :userId AND date = :date ORDER BY startTime ASC")
+    List<Event> getEventsByUserIdSync(int userId, String date);
 }
