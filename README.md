@@ -56,9 +56,9 @@ The UI was designed with a single guiding principle:
 ## 🔐 Login & Sign Up
 
 <div style="text-align: center;">
-  <img src="Repository_Media/Login.png" width="400px"/>
-  <img src="Repository_Media/Login_Light.png" width="400px"/>
-  <img src="Repository_Media/Register.png" width="400px"/>
+  <img src="Repository_Media/Login.png" width="250px"/>
+  <img src="Repository_Media/Login_Light.png" width="250px"/>
+  <img src="Repository_Media/Register.png" width="250px"/>
 </div>
 
 - Shared UI components to reduce redundancy
@@ -96,10 +96,10 @@ The UI was designed with a single guiding principle:
 ## 📲 Logout & SMS Dialogs
 
 <div style="text-align: center;">
-  <img src="Repository_Media/Logout_Feature.png" width="250px"/>
-  <img src="Repository_Media/SMS_Permission_Request.png" width="250px"/>
-  <img src="Repository_Media/SMS_Feature_Working.png" width="250px"/>
-  <img src="Repository_Media/SMS_Feature_Disable.png" width="250px"/>
+  <img src="Repository_Media/Logout_Feature.png" width="200px"/>
+  <img src="Repository_Media/SMS_Permission_Request.png" width="200px"/>
+  <img src="Repository_Media/SMS_Feature_Working.png" width="200px"/>
+  <img src="Repository_Media/SMS_Feature_Disable.png" width="200px"/>
 </div>
 
 - Transparent SMS permission communication
