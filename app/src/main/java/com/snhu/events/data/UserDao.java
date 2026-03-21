@@ -7,7 +7,6 @@
  * the SQL queries for authentication.
  *
  * Last Modified: 2026-02-08
- * Version: 1.0.0
  *
  * Author: Raymond Bautista
  */
@@ -28,6 +27,10 @@ public interface UserDao {
     // Retrieve user information by id or username
     @Query("SELECT * FROM users WHERE email = :identifier OR username = :identifier LIMIT 1")
     User findUserByIdentifier(String identifier);
+
+    // Get user by ID synced for the SMS worker
+    @Query("SELECT * FROM users WHERE id = :userId LIMIT 1")
+    User getUserByIdSync(int userId);
 
     // Used for Stateless Authentication (Finding a user by their session token)
     @Query("SELECT * FROM users WHERE sessionToken = :token LIMIT 1")

@@ -6,8 +6,7 @@
  * Abstract the database calls, acting as
  * a bridge between ViewModels and the database
  *
- * Last Modified: 2026-02-22
- * Version: 2.0.0
+ * Last Modified: 2026-03-21
  *
  * Author: Raymond Bautista
  */
@@ -59,14 +58,24 @@ public class UserRepository {
             // Fetch the user from DB by identifier (email or username)
             User user = userDao.findUserByIdentifier(identifier);
 
-            // Check if user exists and the plain-text input matches the stored hash
-            if (user != null && BCrypt.checkpw(password, user.password)) {
-                // Success: return the user object for session management
-                listener.onFinished(user);
-            } else {
-                // Failure: return null
+            // Check if user exists before continue
+            if (user == null) {
                 listener.onFinished(null);
+                return;
             }
+
+            // Set current time to track log in process
+            long currentTime = System.currentTimeMillis();
+
+            // Check for Brute-Force Lockout
+            if (user.lockoutTimestamp > currentTime) {
+                long minutesLeft = (user.lockoutTimestamp - currentTime) / 60000;
+                listener.onFinished(null);
+                return;
+            }
+
+
+
         });
     }
 }

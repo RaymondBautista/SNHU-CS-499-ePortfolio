@@ -6,7 +6,6 @@
  * Defines the structure of the users table.
  *
  * Last Modified: 2026-03-21
- * Version: 2.0.0
  *
  * Author: Raymond Bautista
  */

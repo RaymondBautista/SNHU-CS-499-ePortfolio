@@ -8,7 +8,6 @@
  * app is closed
  *
  * Last Modified: 2026-02-22
- * Version: 2.0.0
  *
  * Author: Raymond Bautista
  */
