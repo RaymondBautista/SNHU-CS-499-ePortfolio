@@ -8,8 +8,7 @@
  * ViewModel to manage view
  * elements effectively
  *
- * Last Modified: 2026-02-22
- * Version: 3.0.0 (released)
+ * Last Modified: 2026-03-22
  *
  * Author: Raymond Bautista
  */
@@ -95,10 +94,34 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
 
         // Observe Data - The UI updates automatically when DB changes
         viewModel.getEvents(currentUserId).observe(this, events -> {
-            adapter.setItems(processEventsForDisplay(events));
+            updateUiWithEvents(events);
         });
 
         setupNavigation();
+    }
+
+    // Handle logic split between past and upcoming events
+    private void updateUiWithEvents(List<Event> allEvents) {
+        String todayStr = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(new Date());
+
+        List<Event> upcomingEvents = new ArrayList<>();
+        List<Event> pastEvents = new ArrayList<>();
+
+        // Split events based on the date string
+        for (Event e : allEvents) {
+            if (e.date.compareTo(todayStr) >= 0) {
+                upcomingEvents.add(e);
+            } else {
+                pastEvents.add(e);
+            }
+        }
+
+        // Convert raw Event lists into ListItems (with headers)
+        List<ListItem> upcomingItems = processEventsForDisplay(upcomingEvents);
+        List<ListItem> pastItems = processEventsForDisplay(pastEvents);
+
+        // Pass both lists to the refactored event adapter
+        adapter.setData(upcomingItems, pastItems);
     }
 
     // Get the navigation bar currently selected button to display the correct screen
@@ -314,8 +337,8 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
 
         for (Event e : events) {
             if (!e.date.equals(lastDate)) {
-                String header = e.date.equals(today) ? "Today" : formatDate(e.date);
-                items.add(new ListItem(header));
+                String headerText = e.date.equals(today) ? "Today" : formatDate(e.date);
+                items.add(new ListItem(headerText));
                 lastDate = e.date;
             }
             items.add(new ListItem(e));
