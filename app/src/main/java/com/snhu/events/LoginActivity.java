@@ -89,20 +89,33 @@ public class LoginActivity extends AppCompatActivity {
         };
     }
 
-    // Setup real time on click listeners
+    // Setup real time on click listeners for each button
     private void setupClickListeners() {
+        // Sign Up
         btnSignUpToggle.setOnClickListener(v -> viewModel.toggleSignUpMode());
 
+        // Log In
         btnLogin.setOnClickListener(v -> {
             viewModel.login(editEmailOrUser.getText().toString(), editPassword.getText().toString());
         });
 
+        // Forgot Password
         txtForgotPassword.setOnClickListener(v -> {
             viewModel.startPasswordRecovery(editEmailOrUser.getText().toString());
         });
 
+        // SAVE (New Password)
         btnSaveNewPassword.setOnClickListener(v -> {
             viewModel.saveNewPassword(editNewPassword.getText().toString());
+        });
+
+        // Register (on Sign Up)
+        btnRegister.setOnClickListener(v -> {
+            String email = editEmail.getText().toString().trim();
+            String user = editUsername.getText().toString().trim();
+            String pass = editPassword.getText().toString().trim();
+            String phone = editPhone.getText().toString().trim();
+            viewModel.register(email, user, pass, phone);
         });
     }
 
@@ -129,7 +142,9 @@ public class LoginActivity extends AppCompatActivity {
                     btnSignUpToggle.setText("Already have an account? Log In");
                     break;
                 case MFA_LOGIN:
+                    btnSignUpToggle.setVisibility(View.GONE);
                 case MFA_RECOVERY:
+                    btnSignUpToggle.setVisibility(View.GONE);
                     layoutMfaContainer.setVisibility(View.VISIBLE);
                     break;
                 case RESET_PASSWORD:
