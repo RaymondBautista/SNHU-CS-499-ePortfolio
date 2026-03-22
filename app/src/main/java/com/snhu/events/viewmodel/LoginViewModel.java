@@ -16,14 +16,16 @@
 package com.snhu.events.viewmodel;
 
 
+import android.app.Application;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
-
 import com.snhu.events.model.User;
 import com.snhu.events.repository.UserRepository;
 
-public class LoginViewModel extends ViewModel {
+public class LoginViewModel extends AndroidViewModel {
 
     // User table repository instance
     private final UserRepository repository;
@@ -40,8 +42,9 @@ public class LoginViewModel extends ViewModel {
 
     private User pendingUser;
 
-    public LoginViewModel(UserRepository repository) {
-        this.repository = repository;
+    public LoginViewModel(@NonNull Application application) {
+        super(application);
+        this.repository = new UserRepository(application);
     }
 
     // Getters for the UI to observe

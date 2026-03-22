@@ -7,94 +7,186 @@
  * to the ViewModel to manage view
  * elements effectively
  *
- * Last Modified: 2026-02-08
- * Version: 1.0.0
+ * Last Modified: 2026-03-21
  *
  * Author: Raymond Bautista
  */
 package com.snhu.events;
 
-import android.content.Intent;
-import android.content.SharedPreferences;
+
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.ViewModelProvider;
+
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.snhu.events.viewmodel.LoginViewModel;
 
 public class LoginActivity extends AppCompatActivity {
     private LoginViewModel viewModel;
-    private TextInputLayout layoutEmailOrUser, layoutEmailOnly, layoutUsernameOnly, layoutPhone, layoutPassword;
-    private MaterialButton btnLogin, btnRegister, btnSignUpToggle;
-    private TextView txtError;
+
+    // UI Elements
+    private TextInputLayout layoutEmailOrUser, layoutEmailOnly, layoutUsernameOnly,
+            layoutPhone, layoutPassword, layoutNewPassword;
+    private TextInputEditText editEmailOrUser, editEmail, editUsername,
+            editPhone, editPassword, editNewPassword;
+    private ConstraintLayout layoutMfaContainer;
+    private TextView txtForgotPassword, txtMfaInstructions, txtMfaError;
+    private MaterialButton btnLogin, btnRegister, btnSignUpToggle, btnSaveNewPassword;
+    private EditText[] otpFields;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Initialize ViewModel
+        // Initialize view model
+        initializeViews();
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
-        initViews();
 
-        // Toggle Visibility based on Mode
-        viewModel.getIsSignUpMode().observe(this, isSignUp -> {
-            layoutEmailOrUser.setVisibility(isSignUp ? View.GONE : View.VISIBLE);
-            layoutEmailOnly.setVisibility(isSignUp ? View.VISIBLE : View.GONE);
-            layoutUsernameOnly.setVisibility(isSignUp ? View.VISIBLE : View.GONE);
-            layoutPhone.setVisibility(isSignUp ? View.VISIBLE : View.GONE);
-            btnLogin.setVisibility(isSignUp ? View.GONE : View.VISIBLE);
-            btnRegister.setVisibility(isSignUp ? View.VISIBLE : View.GONE);
-            btnSignUpToggle.setText(isSignUp ? "Back to Log In" : "Sign Up");
-        });
-
-        // Observes User object and saves ID to SharedPreferences
-        viewModel.getAuthenticatedUser().observe(this, user -> {
-            if (user != null) {
-                SharedPreferences prefs = getSharedPreferences("EventPrefs", MODE_PRIVATE);
-                prefs.edit().putInt("USER_ID", user.id).apply();
-
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        });
-
-        viewModel.getErrorMessage().observe(this, error -> {
-            if (error != null) {
-                txtError.setText(error);
-                txtError.setVisibility(View.VISIBLE);
-            } else {
-                txtError.setVisibility(View.GONE);
-            }
-        });
-
-        View.OnClickListener submitListener = v -> viewModel.submitForm(
-                getText(layoutEmailOrUser), getText(layoutEmailOnly),
-                getText(layoutPassword), getText(layoutUsernameOnly), getText(layoutPhone)
-        );
-
-        btnLogin.setOnClickListener(submitListener);
-        btnRegister.setOnClickListener(submitListener);
-        btnSignUpToggle.setOnClickListener(v -> viewModel.toggleMode());
+        setupClickListeners();
+        setupOtpAutoAdvance();
+        observeViewModel();
     }
 
-    private void initViews() {
+    // Initialize UI elements views
+    private void initializeViews() {
         layoutEmailOrUser = findViewById(R.id.layoutEmailOrUser);
         layoutEmailOnly = findViewById(R.id.layoutEmailOnly);
         layoutUsernameOnly = findViewById(R.id.layoutUsernameOnly);
         layoutPhone = findViewById(R.id.layoutPhone);
         layoutPassword = findViewById(R.id.layoutPassword);
-        txtError = findViewById(R.id.txtError);
+        layoutMfaContainer = findViewById(R.id.layoutMfaContainer);
+        layoutNewPassword = findViewById(R.id.layoutNewPassword);
+
+        editEmailOrUser = findViewById(R.id.editEmailOrUser);
+        editEmail = findViewById(R.id.editEmail);
+        editUsername = findViewById(R.id.editUsername);
+        editPhone = findViewById(R.id.editPhone);
+        editPassword = findViewById(R.id.editPassword);
+        editNewPassword = findViewById(R.id.editNewPassword);
+
+        txtForgotPassword = findViewById(R.id.txtForgotPassword);
+        txtMfaInstructions = findViewById(R.id.txtMfaInstructions);
+        txtMfaError = findViewById(R.id.txtMfaError);
         btnLogin = findViewById(R.id.btnLogin);
         btnRegister = findViewById(R.id.btnRegister);
         btnSignUpToggle = findViewById(R.id.btnSignUpToggle);
+        btnSaveNewPassword = findViewById(R.id.btnSaveNewPassword);
+
+        otpFields = new EditText[]{
+                findViewById(R.id.otp1), findViewById(R.id.otp2), findViewById(R.id.otp3),
+                findViewById(R.id.otp4), findViewById(R.id.otp5), findViewById(R.id.otp6)
+        };
     }
 
-    private String getText(TextInputLayout layout) {
-        return (layout.getEditText() != null) ? layout.getEditText().getText().toString().trim() : "";
+    // Setup real time on click listeners
+    private void setupClickListeners() {
+        btnSignUpToggle.setOnClickListener(v -> viewModel.toggleSignUpMode());
+
+        btnLogin.setOnClickListener(v -> {
+            viewModel.login(editEmailOrUser.getText().toString(), editPassword.getText().toString());
+        });
+
+        txtForgotPassword.setOnClickListener(v -> {
+            viewModel.startPasswordRecovery(editEmailOrUser.getText().toString());
+        });
+
+        btnSaveNewPassword.setOnClickListener(v -> {
+            viewModel.saveNewPassword(editNewPassword.getText().toString());
+        });
     }
+
+    // Toggle Elements visibility based on the mode
+    private void observeViewModel() {
+        viewModel.getAuthState().observe(this, state -> {
+            hideAllSections();
+            switch (state) {
+                case LOGIN:
+                    layoutEmailOrUser.setVisibility(View.VISIBLE);
+                    layoutPassword.setVisibility(View.VISIBLE);
+                    txtForgotPassword.setVisibility(View.VISIBLE);
+                    btnLogin.setVisibility(View.VISIBLE);
+                    btnSignUpToggle.setVisibility(View.VISIBLE);
+                    btnSignUpToggle.setText("Don't have an account? Sign Up");
+                    break;
+                case SIGNUP:
+                    layoutEmailOnly.setVisibility(View.VISIBLE);
+                    layoutUsernameOnly.setVisibility(View.VISIBLE);
+                    layoutPhone.setVisibility(View.VISIBLE);
+                    layoutPassword.setVisibility(View.VISIBLE);
+                    btnRegister.setVisibility(View.VISIBLE);
+                    btnSignUpToggle.setVisibility(View.VISIBLE);
+                    btnSignUpToggle.setText("Already have an account? Log In");
+                    break;
+                case MFA_LOGIN:
+                case MFA_RECOVERY:
+                    layoutMfaContainer.setVisibility(View.VISIBLE);
+                    break;
+                case RESET_PASSWORD:
+                    layoutMfaContainer.setVisibility(View.VISIBLE);
+                    layoutNewPassword.setVisibility(View.VISIBLE);
+                    btnSaveNewPassword.setVisibility(View.VISIBLE);
+                    break;
+            }
+        });
+
+        // Get phone for MFA and status message for errors
+        viewModel.getMaskedPhone().observe(this, text -> txtMfaInstructions.setText(text));
+        viewModel.getStatusMessage().observe(this, msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show());
+
+        // Display MFA errors
+        viewModel.getMfaErrorMessage().observe(this, msg -> {
+            if (msg != null && !msg.isEmpty()) {
+                txtMfaError.setText(msg);
+                txtMfaError.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    // Hide all elements
+    private void hideAllSections() {
+        View[] views = {layoutEmailOrUser, layoutEmailOnly, layoutUsernameOnly, layoutPhone,
+                layoutPassword, txtForgotPassword, btnLogin, btnRegister,
+                layoutMfaContainer, layoutNewPassword, btnSaveNewPassword};
+        for (View v : views) v.setVisibility(View.GONE);
+    }
+
+    // Method to set up auto advance on MFA code UI elements
+    private void setupOtpAutoAdvance() {
+        for (int i = 0; i < otpFields.length; i++) {
+            final int index = i;
+            otpFields[i].addTextChangedListener(new TextWatcher() {
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    if (s.length() == 1 && index < 5) otpFields[index + 1].requestFocus();
+                    if (isOtpComplete()) viewModel.verifyMfa(getOtpString());
+                }
+                public void afterTextChanged(Editable s) {}
+            });
+        }
+    }
+
+    // Check if the OPT Box Build UI element for MFA is completely filled
+    private boolean isOtpComplete() {
+        for (EditText f : otpFields) if (f.getText().length() == 0) return false;
+        return true;
+    }
+
+    // Get the string on the OPT Box Build UI element for MFA
+    private String getOtpString() {
+        StringBuilder sb = new StringBuilder();
+        for (EditText f : otpFields) sb.append(f.getText().toString());
+        return sb.toString();
+    }
+
 }
