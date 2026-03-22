@@ -5,7 +5,7 @@
  *
  * Defines the structure of the users table.
  *
- * Last Modified: 2026-03-21
+ * Last Modified: 2026-03-22
  *
  * Author: Raymond Bautista
  */
@@ -33,7 +33,6 @@ public class User {
     public long lockoutTimestamp = 0;    // Time when lockout expires (ms)
     public String mfaCode;               // Temporary 6-digit SMS code
     public long mfaExpiry = 0;           // Time when MFA code expires
-    public String sessionToken;          // The "Stateless" Auth Token (UUID)
 
     public User(String email, String username, String password, String phone) {
         this.email = email;
