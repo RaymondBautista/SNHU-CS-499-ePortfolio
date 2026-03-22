@@ -26,8 +26,14 @@ import com.snhu.events.model.Event;
 import com.snhu.events.ui.EventAdapter;
 import com.snhu.events.ui.ListItem;
 import com.snhu.events.viewmodel.EventViewModel;
+
+import android.view.View;
 import android.widget.CalendarView;
+import android.widget.TextView;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -39,12 +45,17 @@ public class CalendarActivity extends AppCompatActivity implements EventAdapter.
     private EventAdapter adapter;
     private List<Event> allEvents = new ArrayList<>();
     private String selectedDate;
+    // Shows when there are not events scheduled on a specific day
+    private TextView txtEmptyState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
 
+        // Initialize selected date as Today by default
+        selectedDate = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(new Date());
+        txtEmptyState = findViewById(R.id.txtEmptyState);
         // Retrieve user ID to show the correct elements
         int currentUserId = getSharedPreferences("EventPrefs", MODE_PRIVATE).getInt("USER_ID", -1);
 
@@ -59,7 +70,7 @@ public class CalendarActivity extends AppCompatActivity implements EventAdapter.
         viewModel = new ViewModelProvider(this).get(EventViewModel.class);
         viewModel.getEvents(currentUserId).observe(this, events -> {
             this.allEvents = events;
-            updateListForDate(selectedDate); // Refresh if data changes
+            updateListForDate(); // Refresh if data changes
         });
 
         // Calendar Listener
@@ -67,22 +78,26 @@ public class CalendarActivity extends AppCompatActivity implements EventAdapter.
         calendarView.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
             // Format to match DB string: yyyy/MM/dd
             selectedDate = String.format(Locale.getDefault(), "%04d/%02d/%02d", year, month + 1, dayOfMonth);
-            updateListForDate(selectedDate);
+            updateListForDate();
         });
 
         setupNavigation();
     }
 
-    private void updateListForDate(String date) {
-        if (date == null) return;
-        List<ListItem> dayItems = new ArrayList<>();
-        for (Event e : allEvents) {
-            if (e.date.equals(date)) {
-                dayItems.add(new ListItem(e));
-            }
+    private void updateListForDate() {
+        List<Event> filtered = viewModel.filterEventsByDate(allEvents, selectedDate);
+
+        if (filtered.isEmpty()) {
+            txtEmptyState.setVisibility(View.VISIBLE);
+            adapter.setData(new ArrayList<>(), new ArrayList<>()); // Clear adapter
+        } else {
+            txtEmptyState.setVisibility(View.GONE);
+            // By passing filtered to 'upcoming' and an empty list to 'past',
+            // the adapter never renders the collapsible toggle.
+            List<ListItem> items = new ArrayList<>();
+            for (Event e : filtered) items.add(new ListItem(e));
+            adapter.setData(items, new ArrayList<>());
         }
-        // Using the adapter in a simplified mode (just one list)
-        adapter.setData(dayItems, new ArrayList<>());
     }
 
     // Setup navigation bar interaction
@@ -91,17 +106,27 @@ public class CalendarActivity extends AppCompatActivity implements EventAdapter.
         nav.setSelectedItemId(R.id.nav_calendar);
         nav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
+
             if (id == R.id.nav_home) {
-                startActivity(new Intent(this, MainActivity.class));
-                return true;
+                finish(); // Go back to Main
             } else if (id == R.id.nav_add) {
                 startActivity(new Intent(this, AddEditEventActivity.class));
-                return true;
+            } else if (id == R.id.nav_sms || id == R.id.nav_logout) {
+                // Redirect: Tell MainActivity which dialog to open
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra("TRIGGER_ACTION", id);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
             }
             return true;
         });
     }
 
-    @Override public void onEdit(Event event) { /* Reuse logic from MainActivity */ }
-    @Override public void onDelete(Event event) { viewModel.deleteEvent(event); }
+    @Override public void onEdit(Event e) {
+        Intent intent = new Intent(this, AddEditEventActivity.class);
+        intent.putExtra("EVENT_ID", e.id);
+        startActivity(intent);
+    }
+
+    @Override public void onDelete(Event e) { viewModel.deleteEvent(e); }
 }

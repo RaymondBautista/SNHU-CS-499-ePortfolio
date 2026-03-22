@@ -251,7 +251,18 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
     @Override
     protected void onResume() {
         super.onResume();
-        // Ensure navbar stays on 'Home' when returning
+
+        // Check if we arrived here from CalendarActivity with a specific intent
+        int action = getIntent().getIntExtra("TRIGGER_ACTION", -1);
+        if (action == R.id.nav_sms) {
+            handleSmsAction();
+        } else if (action == R.id.nav_logout) {
+            showLogoutDialog();
+        }
+
+        // Clear the intent so it doesn't pop up again on rotation
+        getIntent().removeExtra("TRIGGER_ACTION");
+
         BottomNavigationView nav = findViewById(R.id.bottomNavigation);
         nav.setSelectedItemId(R.id.nav_home);
     }

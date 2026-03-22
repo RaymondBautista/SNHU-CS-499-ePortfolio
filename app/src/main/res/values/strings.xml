@@ -50,4 +50,5 @@
     <string name="past_events">Past Events</string>
     <string name="calendar_title">Calendar</string>
     <string name="events_calendar_title">Events Calendar</string>
+    <string name="no_events_scheduled_for_this_day">No events scheduled for this day</string>
 </resources>

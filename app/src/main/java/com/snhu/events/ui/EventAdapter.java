@@ -58,18 +58,25 @@ public class EventAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         notifyDataSetChanged();
     }
 
+    // Return the event type element int constant
     @Override
     public int getItemViewType(int position) {
-        if (position < upcomingItems.size()) {
-            return upcomingItems.get(position).type;
-        } else if (position == upcomingItems.size()) {
+        ListItem item;
+
+        // Safety: If position is the toggle row
+        if (!pastItems.isEmpty() && position == upcomingItems.size()) {
             return ListItem.TYPE_COLLAPSIBLE;
-        } else {
-            // Adjust index to account for upcoming items and the toggle row
-            // Returns 0 for Header, 1 for Event card, and 2 for dropdown
-            int pastIndex = position - upcomingItems.size() - 1;
-            return pastItems.get(pastIndex).type;
         }
+
+        // Identify which list to pull from
+        if (position < upcomingItems.size()) {
+            item = upcomingItems.get(position);
+        } else {
+            // This only hits if isPastExpanded is true and position > upcomingItems.size()
+            item = pastItems.get(position - upcomingItems.size() - 1);
+        }
+
+        return (item.event != null) ? ListItem.TYPE_EVENT : ListItem.TYPE_HEADER;
     }
 
     // Create view holder based on element type
@@ -90,24 +97,26 @@ public class EventAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        // Determine which list and item we are dealing with
-        ListItem item;
-        if (position < upcomingItems.size()) {
+        ListItem item = null;
+
+        // 1. Identify the Item
+        if (pastItems.isEmpty() || position < upcomingItems.size()) {
             item = upcomingItems.get(position);
         } else if (position == upcomingItems.size()) {
-            bindCollapsibleRow((CollapsibleViewHolder) holder);
+            if (holder instanceof CollapsibleViewHolder) bindCollapsibleRow((CollapsibleViewHolder) holder);
             return;
         } else {
-            item = pastItems.get(position - upcomingItems.size() - 1);
+            int pastIndex = position - upcomingItems.size() - 1;
+            if (pastIndex < pastItems.size()) item = pastItems.get(pastIndex);
         }
 
-        // Bind Headers
-        if (holder instanceof HeaderViewHolder) {
-            ((HeaderViewHolder) holder).txtHeader.setText(item.headerDate);
-        }
-        // Bind Event Cards
-        else if (holder instanceof EventViewHolder) {
+        // 2. Safe Binding
+        if (item == null) return;
+
+        if (holder instanceof EventViewHolder && item.event != null) {
             bindEventRow((EventViewHolder) holder, item.event);
+        } else if (holder instanceof HeaderViewHolder && item.headerDate != null) {
+            ((HeaderViewHolder) holder).txtHeader.setText(item.headerDate);
         }
     }
 
@@ -136,12 +145,18 @@ public class EventAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     // Return the number of items
     @Override
     public int getItemCount() {
-        // Total = Upcoming + 1 (Toggle Row) + Past (Only if expanded)
-        int total = upcomingItems.size() + 1;
-        if (isPastExpanded) {
-            total += pastItems.size();
+        // If pastItems is empty, don't reserve a slot for the toggle row
+        if (pastItems == null || pastItems.isEmpty()) {
+            return (upcomingItems != null) ? upcomingItems.size() : 0;
         }
-        return total;
+
+        // If past items exist, show them only if the toggle is expanded
+        if (isPastExpanded) {
+            return upcomingItems.size() + 1 + pastItems.size();
+        } else {
+            // Just the upcoming list + the toggle row itself
+            return upcomingItems.size() + 1;
+        }
     }
 
     // --- VIEW HOLDERS ---
