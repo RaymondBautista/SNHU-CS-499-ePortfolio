@@ -18,6 +18,9 @@
         android:theme="@style/Theme.Events"
         tools:targetApi="31">
         <activity
+            android:name=".CalendarActivity"
+            android:exported="false" />
+        <activity
             android:name=".AddEditEventActivity"
             android:exported="false" />
         <activity

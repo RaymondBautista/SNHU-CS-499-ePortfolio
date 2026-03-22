@@ -48,4 +48,6 @@
     <string name="mfa_incorrect_code">Incorrect code, try again.</string>
     <string name="introduce_new_password">Introduce new password</string>
     <string name="past_events">Past Events</string>
+    <string name="calendar_title">Calendar</string>
+    <string name="events_calendar_title">Events Calendar</string>
 </resources>

@@ -132,6 +132,9 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
             if (id == R.id.nav_sms) handleSmsAction();
             else if (id == R.id.nav_add) navigateToAddEvent();
             else if (id == R.id.nav_logout) showLogoutDialog();
+            else if (id == R.id.nav_calendar) {
+                startActivity(new Intent(this, CalendarActivity.class));
+            }
             return true;
         });
     }

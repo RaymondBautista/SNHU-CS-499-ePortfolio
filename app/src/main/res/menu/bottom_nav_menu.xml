@@ -6,6 +6,10 @@
         android:icon="@drawable/ic_event"
         android:title="@string/events_title" />
     <item
+        android:id="@+id/nav_calendar"
+        android:icon="@drawable/ic_calendar"
+        android:title="@string/calendar_title" />
+    <item
         android:id="@+id/nav_sms"
         android:icon="@drawable/ic_sms"
         android:title="@string/sms_title" />
