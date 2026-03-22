@@ -122,15 +122,18 @@ public class LoginViewModel extends AndroidViewModel {
         mfaErrorMessage.postValue(""); // Clear previous errors
 
         // If the MFA is used for recovery, set the state machine to RESET_PASSWORD
-        repository.verifyMfa(pendingUser.id, code, (user, message) -> {
+        repository.verifyMfa(pendingUser.id, code, (success, message) -> {
             if ("MFA_SUCCESS".equals(message)) {
                 if (authState.getValue() == AuthState.MFA_RECOVERY) {
+                    // Set State Machine to Password Recovery
                     authState.postValue(AuthState.RESET_PASSWORD);
                 } else {
+                    // Set State Machine to Standard Login
+                    // This triggers the observer in Activity to save the session and move to Main
                     authenticatedUser.postValue(pendingUser);
                 }
             } else {
-                mfaErrorMessage.postValue("Incorrect code, try again.");
+                mfaErrorMessage.postValue("Incorrect security code. Please try again.");
             }
         });
     }

@@ -14,6 +14,8 @@
 package com.snhu.events;
 
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -47,6 +49,19 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        /*
+         * Implements stateless authentication by bypassing the login view
+         * if a user ID is already stored in SharedPreferences.
+         * This allows persistent sessions and automatically restores
+         * the user's authenticated state across app launches.
+         */
+        SharedPreferences prefs = getSharedPreferences("EventPrefs", MODE_PRIVATE);
+        if (prefs.getInt("USER_ID", -1) != -1) {
+            navigateToMain();
+            return;
+        }
+
         setContentView(R.layout.activity_login);
 
         // Initialize view model
@@ -166,6 +181,19 @@ public class LoginActivity extends AppCompatActivity {
                 txtMfaError.setVisibility(View.VISIBLE);
             }
         });
+
+        // Observes authentication status for stateless authentication
+        viewModel.getAuthenticatedUser().observe(this, user -> {
+            if (user != null) {
+                // Save the session permanently
+                SharedPreferences prefs = getSharedPreferences("EventPrefs", MODE_PRIVATE);
+                prefs.edit().putInt("USER_ID", user.id).apply();
+
+                // Welcome the user and redirect to main screen
+                Toast.makeText(this, "Welcome back, " + user.username, Toast.LENGTH_SHORT).show();
+                navigateToMain();
+            }
+        });
     }
 
     // Hide all elements
@@ -204,4 +232,12 @@ public class LoginActivity extends AppCompatActivity {
         return sb.toString();
     }
 
+    // Helper method to handle the transition to the main screen
+    private void navigateToMain() {
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        // Clear the backstack so the user can't press "back" to return to the login screen
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
 }
