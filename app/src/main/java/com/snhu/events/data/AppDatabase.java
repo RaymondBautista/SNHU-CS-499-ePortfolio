@@ -24,7 +24,7 @@ import com.snhu.events.model.User;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {User.class, Event.class}, version = 2)
+@Database(entities = {User.class, Event.class}, version = 3)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase instance;
