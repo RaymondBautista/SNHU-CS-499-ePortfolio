@@ -43,4 +43,8 @@
     <string name="enable">Enable</string>
     <string name="sms_alerts_enabled">SMS Alerts Enabled</string>
     <string name="sms_alerts_disabled">SMS Alerts Disabled</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="mfa_introduce_code_title">Introduce the security code sent to your number ending in XXXX</string>
+    <string name="mfa_incorrect_code">Incorrect code, try again.</string>
+    <string name="introduce_new_password">Introduce new password</string>
 </resources>

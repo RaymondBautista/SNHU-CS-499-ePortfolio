@@ -119,6 +119,48 @@ public class UserRepository {
         });
     }
 
+    // Verify MFA code
+    public void verifyMfa(int userId, String enteredCode, OnAuthListener listener) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            User user = userDao.getUserByIdSync(userId);
+            long now = System.currentTimeMillis();
+
+            // Check if the entered code is equal to the saved on the database and time has not expired
+            if (user != null && enteredCode.equals(user.mfaCode) && now < user.mfaExpiry) {
+                listener.onFinished(user, "MFA_SUCCESS");
+            } else {
+                listener.onFinished(null, "Incorrect or expired code");
+            }
+        });
+    }
+
+    // Find the user and send MFA SMS for password recovery without password check
+    public void initiatePasswordRecovery(String identifier, OnAuthListener listener) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            User user = userDao.findUserByIdentifier(identifier);
+            if (user == null) {
+                listener.onFinished(null, "User not found.");
+                return;
+            }
+
+            // Generate and save MFA code for recovery
+            String code = String.valueOf((int)(Math.random() * 900000) + 100000);
+            userDao.updateMfa(user.id, code, System.currentTimeMillis() + (5 * 60000));
+
+            triggerMfaWorker(user.phone, code);
+            listener.onFinished(user, "RECOVERY_MFA_SENT");
+        });
+    }
+
+    // Reset user password
+    public void resetPassword(int userId, String newPassword, OnRegisterListener listener) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+            userDao.resetPassword(userId, hashedPassword);
+            if (listener != null) listener.onFinished();
+        });
+    }
+
     // Helper method to trigger MFA SMS worker
     private void triggerMfaWorker(String phone, String code) {
         Data data = new Data.Builder()
