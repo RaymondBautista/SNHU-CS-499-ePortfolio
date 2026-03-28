@@ -8,7 +8,7 @@
  * ViewModel to manage view
  * elements effectively
  *
- * Last Modified: 2026-03-22
+ * Last Modified: 2026-03-28
  *
  * Author: Raymond Bautista
  */
@@ -86,6 +86,9 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
             return false;
         });
 
+        // Setup log out button
+        findViewById(R.id.btnLogout).setOnClickListener(v -> showLogoutDialog());
+
         // Setup event list RecyclerView
         RecyclerView rv = findViewById(R.id.rvEvents);
         rv.setLayoutManager(new LinearLayoutManager(this));
@@ -131,7 +134,9 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
             int id = item.getItemId();
             if (id == R.id.nav_sms) handleSmsAction();
             else if (id == R.id.nav_add) navigateToAddEvent();
-            else if (id == R.id.nav_logout) showLogoutDialog();
+            else if (id == R.id.nav_search) {
+                startActivity(new Intent(this, SearchActivity.class));
+            }
             else if (id == R.id.nav_calendar) {
                 startActivity(new Intent(this, CalendarActivity.class));
             }
@@ -256,7 +261,7 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
         int action = getIntent().getIntExtra("TRIGGER_ACTION", -1);
         if (action == R.id.nav_sms) {
             handleSmsAction();
-        } else if (action == R.id.nav_logout) {
+        } else if (action == R.id.btnLogout) {
             showLogoutDialog();
         }
 

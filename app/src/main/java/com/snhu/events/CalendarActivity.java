@@ -111,7 +111,7 @@ public class CalendarActivity extends AppCompatActivity implements EventAdapter.
                 finish(); // Go back to Main
             } else if (id == R.id.nav_add) {
                 startActivity(new Intent(this, AddEditEventActivity.class));
-            } else if (id == R.id.nav_sms || id == R.id.nav_logout) {
+            } else if (id == R.id.nav_sms || id == R.id.btnLogout) {
                 // Redirect: Tell MainActivity which dialog to open
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.putExtra("TRIGGER_ACTION", id);
