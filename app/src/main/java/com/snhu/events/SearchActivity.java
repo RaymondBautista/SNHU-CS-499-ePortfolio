@@ -44,16 +44,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class SearchActivity extends AppCompatActivity implements EventAdapter.OnEventClickListener {
 
     private SearchViewModel searchViewModel;
 
-    /* Reuse this ViewModel to connect to the database and retrieve
-     * the raw data to be filtered in this class ViewModel */
+    /**
+     * Reuse this ViewModel to connect to the database and retrieve
+     * the raw data to be filtered in this class ViewModel
+     */
     private EventViewModel eventViewModel;
     private EventAdapter adapter;
-    private List<Event> rawEvents = new ArrayList<>();
     private TextView txtNoResults;
 
     @Override
@@ -74,10 +76,11 @@ public class SearchActivity extends AppCompatActivity implements EventAdapter.On
         rv.setAdapter(adapter);
 
         // Observe the raw data from DB using EventViewModel
-        // Retrieves the original list of events based on authenticated User ID
+        // Pass events to SearchViewModel's internal Map
         int userId = getSharedPreferences("EventPrefs", MODE_PRIVATE).getInt("USER_ID", -1);
         eventViewModel.getEvents(userId).observe(this, events -> {
-            this.rawEvents = events;
+            // Refactored: We send data to the search cache instead of keeping a local list
+            searchViewModel.updateRawData(events);
         });
 
         // Observe the search results from SearchViewModel
@@ -94,12 +97,13 @@ public class SearchActivity extends AppCompatActivity implements EventAdapter.On
         });
 
         // Search Bar Input Listener
+        // Re-trigger the search immediately so the UI removes the deleted item
         EditText editSearch = findViewById(R.id.editSearchQuery);
         editSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
-                // Perform the search after any text change
-                searchViewModel.performSearch(s.toString(), rawEvents);
+                // Only pass the query string and the ViewModel handles the rest
+                searchViewModel.performSearch(s.toString());
             }
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -116,7 +120,6 @@ public class SearchActivity extends AppCompatActivity implements EventAdapter.On
         nav.setSelectedItemId(R.id.nav_search);
         nav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-
             if (id == R.id.nav_home) {
                 finish(); // Go back to Main
             } else if (id == R.id.nav_add) {
@@ -144,10 +147,27 @@ public class SearchActivity extends AppCompatActivity implements EventAdapter.On
         startActivity(intent);
     }
 
+    // Reset the navbar once this screen is resumed
+    @Override
+    protected void onResume() {
+        super.onResume();
+        /* Reset the navigation bar to highlight this activity icon,
+         * whenever the user returns to this screen from the Add/Edit screen.
+         */
+        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
+        if (nav != null) {
+            nav.setSelectedItemId(R.id.nav_search);
+        }
+    }
+
     // Allow user to delete a searched event from this screen
     @Override
     public void onDelete(Event event) {
+        // Delete the event from the database in a background thread
         eventViewModel.deleteEvent(event);
+
+        // Optimistic UI Approach: Instant O(1) removal in UI (Search Cache)
+        searchViewModel.deleteEventOptimistically(event.id);
     }
 
     // Helper to add Date Headers (same logic as MainActivity)
@@ -166,8 +186,8 @@ public class SearchActivity extends AppCompatActivity implements EventAdapter.On
 
     private String formatDate(String raw) {
         try {
-            Date d = new SimpleDateFormat("yyyy/MM/dd").parse(raw);
-            return new SimpleDateFormat("EEE, MMM d").format(d);
+            Date d = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).parse(raw);
+            return new SimpleDateFormat("EEE, MMM d", Locale.getDefault()).format(d);
         } catch (Exception ex) { return raw; }
     }
 }

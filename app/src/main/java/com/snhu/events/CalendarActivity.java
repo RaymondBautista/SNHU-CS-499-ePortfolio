@@ -133,5 +133,19 @@ public class CalendarActivity extends AppCompatActivity implements EventAdapter.
         startActivity(intent);
     }
 
+    // Reset the navbar once this screen is resumed
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        /* Reset the navigation bar to highlight this activity icon,
+         * whenever the user returns to this screen from the Add/Edit screen.
+         */
+        BottomNavigationView nav = findViewById(R.id.bottomNavigation);
+        if (nav != null) {
+            nav.setSelectedItemId(R.id.nav_calendar);
+        }
+    }
+
     @Override public void onDelete(Event e) { viewModel.deleteEvent(e); }
 }

@@ -23,15 +23,23 @@ import androidx.lifecycle.MutableLiveData;
 import com.snhu.events.model.Event;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SearchViewModel extends AndroidViewModel {
 
     // MutableLiveData list of events that updates in real time based on user search input
     private final MutableLiveData<List<Event>> searchResults = new MutableLiveData<>();
 
-    // Retrieved list of events
-    private List<Event> allEvents = new ArrayList<>();
+    /**
+     * Optimized LinkedHashMap to achieve O(1) time complexity
+     * for search and delete while maintaining insertion order
+     */
+    private final Map<Integer, Event> eventMap = new LinkedHashMap<>();
+
+    // Stores the current search query to refresh the list if the data changes
+    private String currentQuery = "";
 
     public SearchViewModel(Application application) {
         super(application);
@@ -41,25 +49,56 @@ public class SearchViewModel extends AndroidViewModel {
         return searchResults;
     }
 
-    // Perform the search calling the respective algorithm methods
-    public void performSearch(String query, List<Event> events) {
+    /**
+     * Updates the local cache from the database observer.
+     * Complexity: O(n) to populate the map.
+     */
+    public void updateRawData(List<Event> events) {
+        eventMap.clear();
+        // Insert all events from the list in the Hash Map
+        if (events != null) {
+            for (Event e : events) {
+                eventMap.put(e.id, e);
+            }
+        }
+        // Refresh the search results based on the new data
+        performSearch(currentQuery);
+    }
 
+    /**
+     * O(1) Optimistic Delete.
+     * Removes item from local cache instantly for a smooth UI experience.
+     */
+    public void deleteEventOptimistically(int eventId) {
+        if (eventMap.containsKey(eventId)) {
+            eventMap.remove(eventId);
+            performSearch(currentQuery);
+        }
+    }
+
+    /**
+     * Core Search Logic
+     * Filtering: O(n * m) using KMP
+     * Sorting: O(n log n) using Merge Sort
+     */
+    public void performSearch(String query) {
         // Creates a new empty list if there are no events
-        this.allEvents = events;
-        if (query == null || query.trim().isEmpty()) {
+        this.currentQuery = (query == null) ? "" : query.trim();
+        if (currentQuery.isEmpty()) {
             searchResults.setValue(new ArrayList<>());
             return;
         }
 
-        // Filter using KMP algorithm
         List<Event> filtered = new ArrayList<>();
-        for (Event e : allEvents) {
-            if (isMatch(e.name, query) || isMatch(e.description, query)) {
+
+        // Use the Map values to iterate and filter using KMP algorithm
+        for (Event e : eventMap.values()) {
+            if (isMatch(e.name, currentQuery) || isMatch(e.description, currentQuery)) {
                 filtered.add(e);
             }
         }
 
-        // Sort the filtered results using Merge Sort
+        // Apply Merge Sort for chronological ascending order
         if (!filtered.isEmpty()) {
             mergeSort(filtered, 0, filtered.size() - 1);
         }
