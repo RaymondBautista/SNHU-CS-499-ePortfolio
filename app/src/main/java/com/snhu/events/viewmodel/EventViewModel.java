@@ -9,7 +9,6 @@
  * event list screen.
  *
  * Last Modified: 2026-03-22
- * Version: 1.0.0
  *
  * Author: Raymond Bautista
  */

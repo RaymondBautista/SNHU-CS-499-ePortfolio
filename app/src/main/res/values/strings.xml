@@ -52,4 +52,9 @@
     <string name="events_calendar_title">Events Calendar</string>
     <string name="no_events_scheduled_for_this_day">No events scheduled for this day</string>
     <string name="search_title">Search</string>
+    <string name="no_events_hint">No events scheduled for this day</string>
+    <string name="event_search_title">Event Search</string>
+    <string name="search_hint">Search by event name or description</string>
+    <string name="no_matching_events_hint">No matching events found</string>
+    <string name="today">Today</string>
 </resources>
