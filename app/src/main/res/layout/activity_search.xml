@@ -42,7 +42,8 @@
             android:inputType="textFilter"
             android:paddingHorizontal="16dp"
             android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-            app:layout_constraintTop_toBottomOf="@id/txtSearchTitle" />
+            app:layout_constraintTop_toBottomOf="@id/txtSearchTitle"
+            android:maxLength="50"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
