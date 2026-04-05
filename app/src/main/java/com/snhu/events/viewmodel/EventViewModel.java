@@ -8,7 +8,7 @@
  * deletion process on the main
  * event list screen.
  *
- * Last Modified: 2026-03-22
+ * Last Modified: 2026-04-04
  *
  * Author: Raymond Bautista
  */
@@ -37,8 +37,13 @@ public class EventViewModel extends AndroidViewModel {
         prefs = application.getSharedPreferences("EventPrefs", Context.MODE_PRIVATE);
     }
 
-    // Livedata to retrieve all events in real time
-    public LiveData<List<Event>> getEvents(int userId) {
+    // Kicks off the background Firestore listener to sync Cloud data into Room
+    public void startCloudSync(String userId) {
+        repository.startRealtimeSync(userId);
+    }
+
+    // Retrieves all events in real time from the Local Room DB (which is kept fresh by startCloudSync)
+    public LiveData<List<Event>> getEvents(String userId) {
         return repository.getEventsForUser(userId);
     }
 

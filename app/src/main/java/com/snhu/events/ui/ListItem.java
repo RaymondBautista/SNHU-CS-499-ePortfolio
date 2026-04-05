@@ -28,5 +28,5 @@ public class ListItem {
 
     public ListItem(String date) { this.type = TYPE_HEADER; this.headerDate = date; }
     public ListItem(Event event) { this.type = TYPE_EVENT; this.event = event; }
-    public ListItem(int type) { this.type = type; } // For the collapsible row9
+    public ListItem(int type) { this.type = type; } // For the collapsible row
 }

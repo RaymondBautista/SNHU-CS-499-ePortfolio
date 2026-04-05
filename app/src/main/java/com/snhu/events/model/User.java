@@ -5,12 +5,13 @@
  *
  * Defines the structure of the users table.
  *
- * Last Modified: 2026-03-22
+ * Last Modified: 2026-04-04
  *
  * Author: Raymond Bautista
  */
 
 package com.snhu.events.model;
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
@@ -18,9 +19,10 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "users", indices = {@Index(value = {"email"}, unique = true), @Index(value = {"username"}, unique = true)})
 public class User {
 
-    // Set id as auto-incremental primary key
-    @PrimaryKey(autoGenerate = true)
-    public int id;
+    // Change from auto-incremental int to String to store Firebase UID
+    @PrimaryKey
+    @NonNull
+    public String id;
 
     // Users table's fields
     public String email;
@@ -29,15 +31,21 @@ public class User {
     public String phone;
 
     // Security Variables
-    public int failedAttempts = 0;       // Tracks brute-force attempts
-    public long lockoutTimestamp = 0;    // Time when lockout expires (ms)
-    public String mfaCode;               // Temporary 6-digit SMS code
-    public long mfaExpiry = 0;           // Time when MFA code expires
+    public int failedAttempts;       // Tracks brute-force attempts
+    public long lockoutTimestamp;    // Time when lockout expires (ms)
+    public String mfaCode;           // Temporary 6-digit SMS code
+    public long mfaExpiry;           // Time when MFA code expires
 
-    public User(String email, String username, String password, String phone) {
-        this.email = email;
+    // Empty constructor for Firestore mapping
+    public User() {}
+
+    public User(@NonNull String id, String username, String email, String phone) {
+        this.id = id;
         this.username = username;
-        this.password = password;
+        this.email = email;
         this.phone = phone;
+        this.failedAttempts = 0;
+        this.lockoutTimestamp = 0;
+        this.mfaExpiry = 0;
     }
 }

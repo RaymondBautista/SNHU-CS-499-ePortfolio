@@ -7,7 +7,7 @@
  * sorting, and querying logic
  * for the search screen.
  *
- * Last Modified: 2026-03-28
+ * Last Modified: 2026-04-04
  *
  * Author: Raymond Bautista
  */
@@ -36,7 +36,7 @@ public class SearchViewModel extends AndroidViewModel {
      * Optimized LinkedHashMap to achieve O(1) time complexity
      * for search and delete while maintaining insertion order
      */
-    private final Map<Integer, Event> eventMap = new LinkedHashMap<>();
+    private final Map<String, Event> eventMap = new LinkedHashMap<>();
 
     // Stores the current search query to refresh the list if the data changes
     private String currentQuery = "";
@@ -69,7 +69,7 @@ public class SearchViewModel extends AndroidViewModel {
      * O(1) Optimistic Delete.
      * Removes item from local cache instantly for a smooth UI experience.
      */
-    public void deleteEventOptimistically(int eventId) {
+    public void deleteEventOptimistically(String eventId) {
         if (eventMap.containsKey(eventId)) {
             eventMap.remove(eventId);
             performSearch(currentQuery);

@@ -8,7 +8,7 @@
  * showing them in a list below a calendar to provide users
  * a more intuitive perspective of their events
  *
- * Last Modified: 2026-03-22
+ * Last Modified: 2026-04-04
  *
  * Author: Raymond Bautista
  */
@@ -16,6 +16,7 @@
 package com.snhu.events;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -57,7 +58,17 @@ public class CalendarActivity extends AppCompatActivity implements EventAdapter.
         selectedDate = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(new Date());
         txtEmptyState = findViewById(R.id.txtEmptyState);
         // Retrieve user ID to show the correct elements
-        int currentUserId = getSharedPreferences("EventPrefs", MODE_PRIVATE).getInt("USER_ID", -1);
+        SharedPreferences prefs = getSharedPreferences("EventPrefs", MODE_PRIVATE);
+        String currentUserId = prefs.getString("USER_ID", null);
+
+        // Safety check: If the session somehow dropped, send users back to login
+        if (currentUserId == null) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
 
         // Initialize UI
         RecyclerView rv = findViewById(R.id.rvDayEvents);

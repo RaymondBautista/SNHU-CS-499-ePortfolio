@@ -6,8 +6,7 @@
  * Creates the physical SQLite internal database file
  * on the device using the Singleton pattern.
  *
- * Last Modified: 2026-03-22
- * Version: 2.5.0
+ * Last Modified: 2026-04-04
  *
  * Author: Raymond Bautista
  */
@@ -24,7 +23,7 @@ import com.snhu.events.model.User;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {User.class, Event.class}, version = 4)
+@Database(entities = {User.class, Event.class}, version = 5)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase instance;

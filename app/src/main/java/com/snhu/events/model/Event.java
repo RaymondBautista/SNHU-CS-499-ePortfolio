@@ -5,14 +5,14 @@
  *
  * Defines the structure of the events table.
  *
- * Last Modified: 2026-02-21
- * Version: 1.0.0
+ * Last Modified: 2026-04-04
  *
  * Author: Raymond Bautista
  */
 
 package com.snhu.events.model;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.Index;
@@ -32,23 +32,31 @@ public class Event {
 
     // Event table fields
 
-    // Set id as auto-incremental primary key
-    @PrimaryKey(autoGenerate = true)
-    public int id;
+    // Change from auto-incremental int ID to String Firestore ID
+    @PrimaryKey
+    @NonNull
+    public String id;
 
     public String name;        // Obligatory
     public String description; // Optional
     public String date;        // YYYY/MM/DD - Obligatory
     public String startTime;   // HH:MM - Obligatory
     public String endTime;     // HH:MM - Obligatory
-    public int userId;         // Foreign Key
 
-    public Event(String name, String description, String date, String startTime, String endTime, int userId) {
+    // Changed to String ID to match Firestore UID
+    @NonNull
+    public String userId;         // Foreign Key
+
+    // Empty constructor for Firestore mapping
+    public Event() {}
+
+    public Event(@NonNull String id, @NonNull String userId, String name, String description, String date, String startTime, String endTime) {
+        this.id = id;
+        this.userId = userId;
         this.name = name;
         this.description = description;
         this.date = date;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.userId = userId;
     }
 }

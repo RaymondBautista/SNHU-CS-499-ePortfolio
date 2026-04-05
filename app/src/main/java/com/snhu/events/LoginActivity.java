@@ -7,15 +7,17 @@
  * to the ViewModel to manage view
  * elements effectively
  *
- * Last Modified: 2026-03-21
+ * Last Modified: 2026-04-04
  *
  * Author: Raymond Bautista
  */
 package com.snhu.events;
 
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -24,8 +26,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.button.MaterialButton;
@@ -46,6 +51,10 @@ public class LoginActivity extends AppCompatActivity {
     private MaterialButton btnLogin, btnRegister, btnSignUpToggle, btnSaveNewPassword;
     private EditText[] otpFields;
 
+    // Variables to handle dynamic SMS Permission requests
+    private static final int SMS_PERMISSION_CODE = 101;
+    private Runnable pendingAuthAction = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,7 +66,10 @@ public class LoginActivity extends AppCompatActivity {
          * the user's authenticated state across app launches.
          */
         SharedPreferences prefs = getSharedPreferences("EventPrefs", MODE_PRIVATE);
-        if (prefs.getInt("USER_ID", -1) != -1) {
+
+        // Retrieve USER_ID as a String and set to null if the key doesn't exist
+        String currentUserId = prefs.getString("USER_ID", null);
+        if (currentUserId != null) {
             navigateToMain();
             return;
         }
@@ -104,6 +116,33 @@ public class LoginActivity extends AppCompatActivity {
         };
     }
 
+    // Helper method to ensure that users have permission before proceeding to SMS MFA flows
+    private void executeWithSmsPermission(Runnable action) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+            action.run(); // Permission already exists, run immediately
+        } else {
+            pendingAuthAction = action; // Save what the user was trying to do
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, SMS_PERMISSION_CODE);
+        }
+    }
+
+    // Prompt a dialog to ask user for SMS permission to enable MFA
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == SMS_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // User clicked "Allow". Automatically run the login/recovery action they initiated!
+                if (pendingAuthAction != null) {
+                    pendingAuthAction.run();
+                    pendingAuthAction = null;
+                }
+            } else {
+                Toast.makeText(this, "SMS Permission is required to receive login security codes.", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
     // Setup real time on click listeners for each button
     private void setupClickListeners() {
         // Sign Up
@@ -111,12 +150,16 @@ public class LoginActivity extends AppCompatActivity {
 
         // Log In
         btnLogin.setOnClickListener(v -> {
-            viewModel.login(editEmailOrUser.getText().toString(), editPassword.getText().toString());
+            executeWithSmsPermission(() -> {
+                viewModel.login(editEmailOrUser.getText().toString(), editPassword.getText().toString());
+            });
         });
 
         // Forgot Password
         txtForgotPassword.setOnClickListener(v -> {
-            viewModel.startPasswordRecovery(editEmailOrUser.getText().toString());
+            executeWithSmsPermission(() -> {
+                viewModel.startPasswordRecovery(editEmailOrUser.getText().toString());
+            });
         });
 
         // SAVE (New Password)
@@ -187,7 +230,9 @@ public class LoginActivity extends AppCompatActivity {
             if (user != null) {
                 // Save the session permanently
                 SharedPreferences prefs = getSharedPreferences("EventPrefs", MODE_PRIVATE);
-                prefs.edit().putInt("USER_ID", user.id).apply();
+
+                // CHANGED: Save the user.id as a String (Firebase UID) instead of an int.
+                prefs.edit().putString("USER_ID", user.id).apply();
 
                 // Welcome the user and redirect to main screen
                 Toast.makeText(this, "Welcome back, " + user.username, Toast.LENGTH_SHORT).show();

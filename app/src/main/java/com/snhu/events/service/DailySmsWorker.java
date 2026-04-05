@@ -43,8 +43,9 @@ public class DailySmsWorker extends Worker {
         Context context = getApplicationContext();
 
         // Get User ID
-        int userId = getInputData().getInt("USER_ID", -1);
-        if (userId == -1) return Result.failure();
+        // Retrieve USER_ID as a String (Firebase UID) instead of an int
+        String userId = getInputData().getString("USER_ID");
+        if (userId == null) return Result.failure();
 
         // CHECK PREFERENCE: Did the user turn SMS OFF in the app?
         SharedPreferences prefs = context.getSharedPreferences("EventPrefs", Context.MODE_PRIVATE);
@@ -67,6 +68,7 @@ public class DailySmsWorker extends Worker {
         AppDatabase db = AppDatabase.getInstance(context);
         String today = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(new Date());
 
+        // The Worker queries Room (the fast local cache) rather than Firestore.
         List<Event> todayEvents = db.eventDao().getEventsByUserIdSync(userId, today);
         User user = db.userDao().getUserByIdSync(userId);
 

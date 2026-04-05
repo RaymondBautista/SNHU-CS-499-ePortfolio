@@ -8,7 +8,7 @@
  * ViewModel to manage view
  * elements effectively
  *
- * Last Modified: 2026-03-28
+ * Last Modified: 2026-04-04
  *
  * Author: Raymond Bautista
  */
@@ -41,6 +41,7 @@ import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.snhu.events.data.AppDatabase;
 import com.snhu.events.model.Event;
 import com.snhu.events.service.DailySmsWorker;
 import com.snhu.events.ui.EventAdapter;
@@ -57,7 +58,7 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity implements EventAdapter.OnEventClickListener {
     private EventViewModel viewModel;
     private EventAdapter adapter;
-    private int currentUserId;
+    private String currentUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,10 +67,10 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
 
         // Retrieve ID from SharedPreferences for persistence
         SharedPreferences prefs = getSharedPreferences("EventPrefs", MODE_PRIVATE);
-        currentUserId = prefs.getInt("USER_ID", -1);
+        currentUserId = prefs.getString("USER_ID", null);
 
         // Security Check: If no user found, kick back to login
-        if (currentUserId == -1) {
+        if (currentUserId == null) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
@@ -77,6 +78,13 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
 
         // Initialize view model
         viewModel = new ViewModelProvider(this).get(EventViewModel.class);
+
+        /**
+         * Hybrid Cloud Model Implementation
+         * Tell the ViewModel to start watching Firestore and pulling
+         * down updates to the local Room database
+         */
+        viewModel.startCloudSync(currentUserId);
 
         // Setup Editable Header
         EditText editListName = findViewById(R.id.editListName);
@@ -95,7 +103,8 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
         adapter = new EventAdapter(this);
         rv.setAdapter(adapter);
 
-        // Observe Data - The UI updates automatically when DB changes
+        // Observe Data - The UI updates automatically when Room changes
+        // Room updates automatically when Firestore changes
         viewModel.getEvents(currentUserId).observe(this, events -> {
             updateUiWithEvents(events);
         });
@@ -224,8 +233,17 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
         layout.findViewById(R.id.btnPositive).setOnClickListener(v -> {
-            // Clear the session on logout
+            // Clear the SharedPreferences session on logout
             getSharedPreferences("EventPrefs", MODE_PRIVATE).edit().clear().apply();
+
+            // SECURITY WIPE: Completely erase the user's footprint from this specific device
+            AppDatabase.databaseWriteExecutor.execute(() -> {
+                AppDatabase db = AppDatabase.getInstance(MainActivity.this);
+                db.eventDao().deleteAllForUser(currentUserId); // Erase local events
+                db.userDao().deleteUserById(currentUserId);    // Erase local user credentials
+            });
+
+            // Kick back to login screen
             Intent intent = new Intent(this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
@@ -244,7 +262,6 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
         intent.putExtra("EVENT_ID", event.id);
         startActivity(intent);
     }
-
 
     // Connects with ViewModel delete event functionality
     @Override
@@ -278,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 101) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // System permission granted! Now turn on our internal toggle.
+                // System permission granted! Now turn on the internal toggle.
                 getSharedPreferences("EventPrefs", MODE_PRIVATE)
                         .edit()
                         .putBoolean("SMS_ENABLED_" + currentUserId, true)
@@ -290,10 +307,10 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
 
     // Indicates the WorkManager to run (enqueue)
     // the worker and send SMS immediately after enabling
-    private void triggerTestSmsWorker(int userId) {
+    private void triggerTestSmsWorker(String userId) {
         // Create the data to pass to the worker
         Data inputData = new Data.Builder()
-                .putInt("USER_ID", userId)
+                .putString("USER_ID", userId)
                 .build();
 
         // Create a One-Time request for immediate testing
@@ -308,7 +325,7 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
     }
 
     // Schedule automatic SMS notifications using the Worker
-    private void scheduleDailySms(int userId) {
+    private void scheduleDailySms(String userId) {
         Calendar calendar = Calendar.getInstance();
         long now = calendar.getTimeInMillis();
 
@@ -325,7 +342,7 @@ public class MainActivity extends AppCompatActivity implements EventAdapter.OnEv
 
         long delay = calendar.getTimeInMillis() - now;
 
-        Data inputData = new Data.Builder().putInt("USER_ID", userId).build();
+        Data inputData = new Data.Builder().putString("USER_ID", userId).build();
 
         // Create a periodic request (24-hour interval)
         PeriodicWorkRequest dailyRequest = new PeriodicWorkRequest.Builder(

@@ -8,8 +8,7 @@
  * the ViewModel to handle
  * user activity effectively
  *
- * Last Modified: 2026-02-22
- * Version: 2.0.0
+ * Last Modified: 2026-04-04
  *
  * Author: Raymond Bautista
  */
@@ -47,7 +46,8 @@ public class AddEditEventActivity extends AppCompatActivity {
     private TextView txtHeader;
     private Button btnAction;
 
-    private int userId, eventId;
+    // Changed from Int to String
+    private String userId, eventId;
 
     // Flag to determine if the form should be on add or edit mode
     private boolean isEditMode = false;
@@ -63,9 +63,9 @@ public class AddEditEventActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(AddEditViewModel.class);
 
         // Load User ID from Prefs and Event ID from Intent
-        userId = getSharedPreferences("EventPrefs", MODE_PRIVATE).getInt("USER_ID", -1);
-        eventId = getIntent().getIntExtra("EVENT_ID", -1);
-        isEditMode = (eventId != -1);
+        userId = getSharedPreferences("EventPrefs", MODE_PRIVATE).getString("USER_ID", null);
+        eventId = getIntent().getStringExtra("EVENT_ID");
+        isEditMode = (eventId != null);
 
         initViews();    // Initialize UI elements
         setupPickers(); // Initialize date and time pickers
@@ -185,7 +185,7 @@ public class AddEditEventActivity extends AppCompatActivity {
         }
 
         // Retrieve data and call correct viewModel method based on current status flag
-        if (userId == -1) {
+        if (userId == null) {
             Toast.makeText(this, "Error: User session lost. Please log in again.", Toast.LENGTH_LONG).show();
             return;
         }

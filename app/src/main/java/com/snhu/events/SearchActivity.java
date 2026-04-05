@@ -9,7 +9,7 @@
  * events in ascending chronological order based on user
  * search input
  *
- * Last Modified: 2026-03-28
+ * Last Modified: 2026-04-04
  *
  * Author: Raymond Bautista
  */
@@ -77,7 +77,15 @@ public class SearchActivity extends AppCompatActivity implements EventAdapter.On
 
         // Observe the raw data from DB using EventViewModel
         // Pass events to SearchViewModel's internal Map
-        int userId = getSharedPreferences("EventPrefs", MODE_PRIVATE).getInt("USER_ID", -1);
+        String userId = getSharedPreferences("EventPrefs", MODE_PRIVATE).getString("USER_ID", null);
+
+        // Safety check to ensure we have a valid session before querying the DB
+        if (userId == null) {
+            finish();
+            return;
+        }
+
+        // Observe the raw data from DB using EventViewModel
         eventViewModel.getEvents(userId).observe(this, events -> {
             // Refactored: We send data to the search cache instead of keeping a local list
             searchViewModel.updateRawData(events);

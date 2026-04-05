@@ -8,8 +8,7 @@
  * in the database, as well as bulk
  * insertions
  *
- * Last Modified: 2026-02-22
- * Version: 1.0.0
+ * Last Modified: 2026-04-04
  *
  * Author: Raymond Bautista
  */
@@ -39,11 +38,12 @@ public class AddEditViewModel extends AndroidViewModel {
         repository = new EventRepository(application);
     }
 
-    public LiveData<Event> getEvent(int id) {
+    // CHANGED: int id -> String id
+    public LiveData<Event> getEvent(String id) {
         return repository.getEventById(id);
     }
 
-    public void saveEvents(int userId, String name, String desc, String startD, String endD, String startT, String endT) {
+    public void saveEvents(String userId, String name, String desc, String startD, String endD, String startT, String endT) {
 
         // Get a list of events to save if the user specify start and end dates
 
@@ -58,7 +58,14 @@ public class AddEditViewModel extends AndroidViewModel {
 
             while (!calendar.getTime().after(endDate)) {
                 String currentDate = sdf.format(calendar.getTime());
-                eventsToSave.add(new Event(name, desc, currentDate, startT, endT, userId));
+
+                /**
+                 * Pass an empty string ("") for the Event ID, since
+                 * the EventRepository detects it and automatically generate
+                 * a unique Firestore Document ID before adding it to the WriteBatch
+                 */
+                eventsToSave.add(new Event("", userId, name, desc, currentDate, startT, endT));
+                // Iterate to the next day for the following instance of the recurring event
                 calendar.add(Calendar.DATE, 1);
             }
             repository.insertAll(eventsToSave);

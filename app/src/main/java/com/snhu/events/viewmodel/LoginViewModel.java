@@ -8,7 +8,7 @@
  * password length, and communicates with the
  * database room repository.
  *
- * Last Modified: 2026-03-21
+ * Last Modified: 2026-04-04
  *
  * Author: Raymond Bautista
  */
@@ -76,7 +76,8 @@ public class LoginViewModel extends AndroidViewModel {
             return;
         }
         // Create new user record instance
-        User newUser = new User(email, username, password, phone);
+        // The Repository will handle giving this user a Firebase String UID
+        User newUser = new User("", username, email, phone);
         // Pass a callback to wait for the DB to finish saving
         repository.register(newUser, () -> {
             statusMessage.postValue("Registration successful! Please log in.");
@@ -84,7 +85,7 @@ public class LoginViewModel extends AndroidViewModel {
         });
     }
 
-    // Compare user credentials against database to login
+    // Compare user credentials against database to login and triggers MFA
     public void login(String identifier, String password) {
         repository.authenticate(identifier, password, (user, message) -> {
             if ("MFA_SENT".equals(message) && user != null) {
@@ -161,5 +162,4 @@ public class LoginViewModel extends AndroidViewModel {
             maskedPhone.postValue("Introduce the security code sent to your number ending in " + lastFour);
         }
     }
-
 }
