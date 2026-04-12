@@ -17,3 +17,17 @@ For the Software Design and Engineering enhancement, I strengthened the applicat
   <img src="Portfolio_Assets/Picture2.png" width="250"/>
   <img src="Portfolio_Assets/Picture3.png" width="250"/>
 </p>
+
+---
+
+## 🔍 Data Structures and Algorithms Enhancements
+
+For the Data Structures and Algorithms enhancement, I improved the application’s efficiency and usability by implementing a dedicated search feature powered by the Knuth-Morris-Pratt (KMP) pattern searching algorithm, enabling fast and flexible keyword matching across event titles and descriptions. To ensure results are organized and user-friendly, I integrated a merge sort algorithm to display events in ascending chronological order, leveraging its stability and consistent performance. I refined the underlying data structures by transitioning from lists to a LinkedHashMap to optimize lookup and deletion operations and applied an optimistic UI update strategy to keep the interface responsive and synchronized with backend changes. Architecturally, I isolated the search functionality into a separate screen following MVVM principles, ensuring separation of concerns while reusing existing ViewModels for data retrieval and introducing a dedicated ViewModel for processing. These improvements demonstrate efficient algorithm selection, performance optimization, and scalable design aligned with real-world mobile constraints.
+
+### 📸 Application Enhancements Preview
+
+<p align="center">
+  <img src="Portfolio_Assets/Picture4.png" width="250"/>
+  <img src="Portfolio_Assets/Picture5.png" width="250"/>
+  <img src="Portfolio_Assets/Picture6.png" width="250"/>
+</p>
