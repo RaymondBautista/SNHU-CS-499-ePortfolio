@@ -1,0 +1,30 @@
+# --- Build Artifacts & Temporary Files ---
+.gradle/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.log
+*.hprof
+.DS_Store
+
+# --- Android Studio / IntelliJ IDEA ---
+# It is best practice to ignore the entire .idea folder
+# unless you specifically need to share project-wide settings.
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# --- Local Configuration (SENSITIVE) ---
+# NEVER share these files; they contain local paths and secrets.
+local.properties
+google-services.json
+
+# --- Signing & Release Artifacts (CRITICAL SECURITY) ---
+# Never commit your release keystore to version control.
+*.jks
+*.keystore
+*.apk
+*.aab
+output-metadata.json
