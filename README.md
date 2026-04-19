@@ -150,17 +150,21 @@ I transformed the application from a local-only relational model into a scalable
 * Application of strict server-side security measures ensuring user-scoped data access and confidentiality.
 
 <div align="center">
-  <img src="assets/picture13.png" width="45%" style="margin-right: 2%;">
-  <img src="assets/picture14.png" width="45%">
-  <br>
-  <em>Figure 7 – Local Room SQL Database and Firestore Cloud Non-SQL Database Integration</em>
+  <figure>
+    <img src="assets/picture13.png" width="100%" style="margin-bottom: 15px;">
+    <br>
+    <img src="assets/picture14.png" width="100%">
+    <figcaption><em>Figure 7 – Local Room SQL Database and Firestore Cloud Non-SQL Database Integration</em></figcaption>
+  </figure>
 </div>
 <br>
 <div align="center">
-  <img src="assets/picture15.png" width="45%" style="margin-right: 2%;">
-  <img src="assets/picture16.png" width="45%">
-  <br>
-  <em>Figure 8 – Persistent Session Synchronization across devices using hybrid cloud approach</em>
+  <figure>
+    <img src="assets/picture15.png" width="100%" style="margin-bottom: 15px;">
+    <br>
+    <img src="assets/picture16.png" width="100%">
+    <figcaption><em>Figure 8 – Persistent Session Synchronization across devices using hybrid cloud approach</em></figcaption>
+  </figure>
 </div>
 <br>
 
