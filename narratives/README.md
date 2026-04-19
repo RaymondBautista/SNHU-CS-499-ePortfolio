@@ -1,6 +1,6 @@
 # 📖 Capstone Narratives: Strategic Development & Reflection
 
-This directory serves as the formal documentation of my technical journey throughout the **CS-499 Computer Science Capstone**. These narratives capture the complete lifecycle of the project—from initial research and artifact selection to code implementation, rigorous testing, and final professional self-assessment.
+This directory serves as the formal documentation of my technical journey throughout the **CS-499 Computer Science Capstone**. These narratives capture the complete lifecycle of the project, from initial research and artifact selection to code implementation, rigorous testing, and final professional self-assessment.
 
 ---
 
