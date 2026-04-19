@@ -1,0 +1,10 @@
+<resources>
+    <style name="Theme.Events" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/blue_200</item>
+        <item name="colorOnPrimary">@color/gray_800</item>
+        <item name="android:statusBarColor">@color/gray_800</item>
+        <item name="android:windowBackground">@color/gray_800</item>
+        <item name="colorSecondaryContainer">@color/blue_245</item>
+        <item name="colorOnSecondaryContainer">@color/white</item>
+    </style>
+</resources>
