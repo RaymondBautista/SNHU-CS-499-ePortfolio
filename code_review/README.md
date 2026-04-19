@@ -7,7 +7,7 @@ While typical reviews are limited to written pull requests, this video analysis 
 ---
 
 ### 📺 Video Walkthrough
-[![Watch the Code Review](https://img.youtube.com/vi/placeholder/0.jpg)](https://drive.google.com/file/d/10koSWxyQLtFEhYQfeObbxoFAz5xMFhHr/view?usp=drive_link)
+[![Watch the Code Review](code_walkthrough.png)](https://drive.google.com/file/d/10koSWxyQLtFEhYQfeObbxoFAz5xMFhHr/view?usp=drive_link)
 > **[Click here to view the full Code Review on Google Drive](https://drive.google.com/file/d/10koSWxyQLtFEhYQfeObbxoFAz5xMFhHr/view?usp=drive_link)**
 > *Note: The video covers initial app limitations, code analysis, and the roadmap for the upcoming enhancements.*
 
