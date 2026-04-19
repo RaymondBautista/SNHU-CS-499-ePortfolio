@@ -68,7 +68,7 @@ The UI was designed with a single guiding principle:
 ## 🔐 Login & Sign Up
 
 <div style="text-align: center;">
-  <img src="Repository_Media/login.png" width="230px"/>
+  <img src="Repository_Media/Login.png" width="230px"/>
   <img src="Repository_Media/mfa_sms.png" width="230px"/>
   <img src="Repository_Media/register_dark.png" width="230px"/>
   <img src="Repository_Media/password_recovery.png" width="230px"/>
