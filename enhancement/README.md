@@ -68,7 +68,7 @@ The UI was designed with a single guiding principle:
 ## 🔐 Login & Sign Up
 
 <div style="text-align: center;">
-  <img src="Repository_Media/login.png" width="230px"/>
+  <img src="Repository_Media/Login.png" width="230px"/>
   <img src="Repository_Media/mfa_sms.png" width="230px"/>
   <img src="Repository_Media/register_dark.png" width="230px"/>
   <img src="Repository_Media/password_recovery.png" width="230px"/>
@@ -159,12 +159,12 @@ The application follows the **Model–View–ViewModel (MVVM)** architecture to 
 Development followed an **incremental, iterative approach**, evolving from a local utility into a secure distributed system. Each enhancement was validated through a combination of manual testing in the Android Studio emulator and structural code reviews.
 
 ### 📄 Documentation & Narrative Deep-Dives
-For a detailed look at the research, trade-offs, and implementation logs for each phase of this project, please refer to the following narratives:
+For a detailed look at the research, trade-offs, and implementation logs for each phase of this project, please refer to the following narratives located in the root directory:
 
-* [**Strategic Enhancement Plan**](narratives/CS%20499_Module_One_Enhancement_Plan.pdf) – Project audit and roadmap definition.
-* [**Software Design & Engineering**](narratives/CS-499_Software_Eng_Enhancement.pdf) – Deep dive into MFA, security protocols, and UX refactoring.
-* [**Data Structures & Algorithms**](narratives/CS-499_DSA_Enhancement.pdf) – Analysis of KMP, Merge Sort, and Big-O complexity.
-* [**Database & Cloud Integration**](narratives/CS-499_Cloud_DB_Enhancement.pdf) – Cloud benchmarking and hybrid architecture implementation.
+* [**Strategic Enhancement Plan**](../narratives/CS%20499_Module_One_Enhancement_Plan.pdf) – Project audit and roadmap definition.
+* [**Software Design & Engineering**](../narratives/CS-499_Software_Eng_Enhancement.pdf) – Deep dive into MFA, security protocols, and UX refactoring.
+* [**Data Structures & Algorithms**](../narratives/CS-499_DSA_Enhancement.pdf) – Analysis of KMP, Merge Sort, and Big-O complexity.
+* [**Database & Cloud Integration**](../narratives/CS-499_Cloud_DB_Enhancement.pdf) – Cloud benchmarking and hybrid architecture implementation.
 
 ---
 
